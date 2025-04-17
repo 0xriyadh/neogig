@@ -1,0 +1,729 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+<additional_info>
+
+</additional_info>
+
+</file_summary>
+
+<directory_structure>
+src/
+  config/
+    trpc.ts
+  controllers/
+    auth.controller.ts
+  db/
+    schema/
+      company.ts
+      index.ts
+      jobSeeker.ts
+      user.ts
+    index.ts
+    migrate.ts
+  models/
+    auth.models.ts
+  routes/
+    auth.routes.ts
+    index.ts
+  services/
+    auth.service.ts
+  server.ts
+.gitignore
+drizzle.config.ts
+package.json
+README.md
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/config/trpc.ts">
+import { initTRPC } from "@trpc/server";
+
+// You can add context type generation here if needed later
+// export type Context = { /* ... */ };
+
+const t = initTRPC.create();
+
+export const router = t.router;
+export const publicProcedure = t.procedure;
+// export const middleware = t.middleware; // Uncomment if needed
+</file>
+
+<file path="src/controllers/auth.controller.ts">
+import { AuthService } from "../services/auth.service";
+import {
+    LoginInput,
+    SignupInput,
+    ApplicantSignupInput,
+    CompanySignupInput,
+} from "../models/auth.models";
+
+export class AuthController {
+    private authService: AuthService;
+
+    constructor() {
+        this.authService = new AuthService();
+    }
+
+    async signup(input: SignupInput) {
+        // Type guard to ensure correct profile data is passed
+        if (input.role === "applicant") {
+            return this.authService.signup(input as ApplicantSignupInput);
+        } else {
+            return this.authService.signup(input as CompanySignupInput);
+        }
+    }
+
+    async login(input: LoginInput) {
+        return this.authService.login(input);
+    }
+}
+</file>
+
+<file path="src/db/schema/company.ts">
+import {
+    pgTable,
+    text,
+    varchar,
+    pgEnum,
+    uuid,
+    timestamp,
+    date,
+} from "drizzle-orm/pg-core";
+import { users } from "./user";
+
+// Define industry enum based on the diagram (add more as needed)
+export const industryEnum = pgEnum("industry", [
+    "TECH",
+    "AGRI",
+    "HEALTH",
+    "FINANCE",
+    "EDUCATION",
+    "OTHER",
+]);
+
+export const companies = pgTable("companies", {
+    userId: uuid("user_id")
+        .primaryKey()
+        .references(() => users.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 255 }).notNull(),
+    location: text("location"),
+    phone: varchar("phone", { length: 20 }),
+    industry: industryEnum("industry"),
+    description: text("description"),
+    registrationDate: date("registration_date"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type Company = typeof companies.$inferSelect;
+export type NewCompany = typeof companies.$inferInsert;
+</file>
+
+<file path="src/db/schema/index.ts">
+import * as user from "./user";
+import * as jobSeeker from "./jobSeeker";
+import * as company from "./company";
+
+export default {
+    ...user,
+    ...jobSeeker,
+    ...company,
+};
+</file>
+
+<file path="src/db/schema/jobSeeker.ts">
+import {
+    pgTable,
+    text,
+    varchar,
+    boolean,
+    json,
+    pgEnum,
+    uuid,
+    timestamp,
+} from "drizzle-orm/pg-core";
+import { users } from "./user";
+
+export const preferredJobTypeEnum = pgEnum("preferred_job_type", [
+    "REMOTE",
+    "ONSITE",
+    "HYBRID",
+]);
+
+export const jobSeekers = pgTable("job_seekers", {
+    userId: uuid("user_id")
+        .primaryKey()
+        .references(() => users.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 255 }).notNull(),
+    address: text("address"),
+    gender: varchar("gender", { length: 50 }),
+    mobile: varchar("mobile", { length: 20 }),
+    description: text("description"),
+    preferredJobType: preferredJobTypeEnum("preferred_job_type"),
+    availableSchedule: json("available_schedule"), // Consider a more structured type later if needed
+    currentlyLookingForJob: boolean("currently_looking_for_job").default(true),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type JobSeeker = typeof jobSeekers.$inferSelect;
+export type NewJobSeeker = typeof jobSeekers.$inferInsert;
+</file>
+
+<file path="src/db/schema/user.ts">
+import {
+    pgTable,
+    text,
+    timestamp,
+    uuid,
+    varchar,
+    pgEnum,
+} from "drizzle-orm/pg-core";
+
+export const userRoleEnum = pgEnum("user_role", ["applicant", "company"]);
+
+export const users = pgTable("users", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: varchar("email", { length: 255 }).notNull().unique(),
+    password: text("password").notNull(),
+    role: userRoleEnum("role").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+</file>
+
+<file path="src/db/index.ts">
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import * as dotenv from "dotenv";
+import * as schema from "./schema"; // Import all schemas
+
+dotenv.config({ path: ".env" });
+
+if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL environment variable is required.");
+}
+
+const connectionString = process.env.DATABASE_URL;
+
+// Disable prefetch as it is not supported for "Transaction" pool mode
+// See https://github.com/porsager/postgres/issues/601 for more details
+const client = postgres(connectionString, { prepare: false });
+export const db = drizzle(client, { schema });
+
+// Export the schema along with the db instance
+export * as schema from "./schema";
+</file>
+
+<file path="src/db/migrate.ts">
+import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { db } from "./index";
+import * as dotenv from "dotenv";
+
+// Load environment variables
+dotenv.config({ path: ".env" });
+
+async function runMigrations() {
+    console.log("Running database migrations...");
+    try {
+        await migrate(db, { migrationsFolder: "src/db/migrations" });
+        console.log("Migrations applied successfully!");
+        // Manually exit the process, otherwise it might hang
+        process.exit(0);
+    } catch (error) {
+        console.error("Error applying migrations:", error);
+        process.exit(1);
+    }
+}
+
+runMigrations();
+</file>
+
+<file path="src/models/auth.models.ts">
+import { z } from "zod";
+import { userRoleEnum } from "../db/schema/user";
+
+// Common login schema
+export const LoginSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(6), // Basic password validation
+});
+
+// Base signup schema with common fields
+const BaseSignupSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(8, "Password must be at least 8 characters long"),
+});
+
+// Applicant specific signup fields
+export const ApplicantSignupSchema = BaseSignupSchema.extend({
+    role: z.literal(userRoleEnum.enumValues[0]), // 'applicant'
+    name: z.string().min(1, "Name is required"),
+    // Add other required applicant fields from JobSeeker schema if needed for signup
+    // e.g., mobile: z.string().optional(),
+});
+
+// Company specific signup fields
+export const CompanySignupSchema = BaseSignupSchema.extend({
+    role: z.literal(userRoleEnum.enumValues[1]), // 'company'
+    name: z.string().min(1, "Company name is required"),
+    // Add other required company fields from Company schema if needed for signup
+    // e.g., location: z.string().optional(),
+});
+
+// Union schema for signup to handle both types
+export const SignupSchema = z.union([
+    ApplicantSignupSchema,
+    CompanySignupSchema,
+]);
+
+export type LoginInput = z.infer<typeof LoginSchema>;
+export type SignupInput = z.infer<typeof SignupSchema>;
+export type ApplicantSignupInput = z.infer<typeof ApplicantSignupSchema>;
+export type CompanySignupInput = z.infer<typeof CompanySignupSchema>;
+</file>
+
+<file path="src/routes/auth.routes.ts">
+import { router, publicProcedure } from "../config/trpc";
+import { AuthController } from "../controllers/auth.controller";
+import { LoginSchema, SignupSchema } from "../models/auth.models";
+
+const authController = new AuthController();
+
+export const authRouter = router({
+    signup: publicProcedure
+        .input(SignupSchema) // Use the combined signup schema for input validation
+        .mutation(({ input }) => {
+            return authController.signup(input);
+        }),
+
+    login: publicProcedure.input(LoginSchema).mutation(({ input }) => {
+        return authController.login(input);
+    }),
+});
+</file>
+
+<file path="src/routes/index.ts">
+import { router } from "../config/trpc";
+import { authRouter } from "./auth.routes"; // Import the auth router
+// import { authRouter } from './auth.routes'; // We'll add this soon
+
+export const appRouter = router({
+    auth: authRouter, // Mount the auth router under the 'auth' namespace
+    // auth: authRouter, // We'll add this soon
+});
+
+export type AppRouter = typeof appRouter;
+</file>
+
+<file path="src/services/auth.service.ts">
+import { db } from "../db";
+import { users, jobSeekers, companies } from "../db/schema";
+import {
+    LoginInput,
+    ApplicantSignupInput,
+    CompanySignupInput,
+} from "../models/auth.models";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
+import * as dotenv from "dotenv";
+
+dotenv.config();
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error("JWT_SECRET environment variable is required.");
+}
+
+const SALT_ROUNDS = 10;
+
+export class AuthService {
+    async signup(
+        input: ApplicantSignupInput | CompanySignupInput
+    ): Promise<{ userId: string; token: string }> {
+        const { email, password, role, name, ...profileData } = input;
+
+        // Check if user already exists
+        const existingUser = await db
+            .select()
+            .from(users)
+            .where(eq(users.email, email))
+            .limit(1);
+        if (existingUser.length > 0) {
+            throw new TRPCError({
+                code: "CONFLICT",
+                message: "Email already exists",
+            });
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
+        // Use transaction to ensure atomicity
+        const result = await db.transaction(async (tx) => {
+            // Create user
+            const [newUser] = await tx
+                .insert(users)
+                .values({
+                    email,
+                    password: hashedPassword,
+                    role,
+                })
+                .returning({ id: users.id });
+
+            const userId = newUser.id;
+
+            // Create profile (JobSeeker or Company)
+            if (role === "applicant") {
+                await tx.insert(jobSeekers).values({
+                    userId,
+                    name,
+                    ...(profileData as Omit<
+                        ApplicantSignupInput,
+                        "email" | "password" | "role" | "name"
+                    >),
+                });
+            } else if (role === "company") {
+                await tx.insert(companies).values({
+                    userId,
+                    name,
+                    ...(profileData as Omit<
+                        CompanySignupInput,
+                        "email" | "password" | "role" | "name"
+                    >),
+                });
+            }
+
+            return { userId };
+        });
+
+        // Generate JWT
+        const token = jwt.sign({ userId: result.userId, role }, JWT_SECRET, {
+            expiresIn: "1d",
+        });
+
+        return { userId: result.userId, token };
+    }
+
+    async login(
+        input: LoginInput
+    ): Promise<{
+        token: string;
+        user: { id: string; email: string; role: string };
+    }> {
+        const { email, password } = input;
+
+        const [user] = await db
+            .select()
+            .from(users)
+            .where(eq(users.email, email))
+            .limit(1);
+
+        if (!user) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "Invalid email or password",
+            });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            throw new TRPCError({
+                code: "UNAUTHORIZED",
+                message: "Invalid email or password",
+            });
+        }
+
+        // Generate JWT
+        const token = jwt.sign(
+            { userId: user.id, role: user.role },
+            JWT_SECRET,
+            { expiresIn: "1d" }
+        );
+
+        return {
+            token,
+            user: {
+                id: user.id,
+                email: user.email,
+                role: user.role,
+            },
+        };
+    }
+}
+</file>
+
+<file path="src/server.ts">
+import express from "express";
+import * as trpcExpress from "@trpc/server/adapters/express";
+import { appRouter } from "./routes";
+import * as dotenv from "dotenv";
+// import cors from 'cors'; // You might need CORS later
+
+dotenv.config();
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+// app.use(cors()); // Enable CORS if your frontend is on a different origin
+app.use(express.json());
+
+// Create tRPC context (can be expanded later)
+const createContext = ({
+    req,
+    res,
+}: trpcExpress.CreateExpressContextOptions) => ({});
+
+app.use(
+    "/trpc",
+    trpcExpress.createExpressMiddleware({
+        router: appRouter,
+        createContext,
+    })
+);
+
+app.get("/", (req, res) => {
+    res.send("Hello from NeoGig Backend!");
+});
+
+app.listen(port, () => {
+    console.log(`Server listening at http://localhost:${port}`);
+});
+</file>
+
+<file path=".gitignore">
+node_modules
+dist
+.env
+*.log
+</file>
+
+<file path="drizzle.config.ts">
+import { defineConfig } from "drizzle-kit";
+import * as dotenv from "dotenv";
+
+dotenv.config({ path: ".env" });
+
+if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL environment variable is required.");
+}
+
+export default defineConfig({
+    schema: "./src/db/schema/*",
+    out: "./src/db/migrations",
+    dialect: "postgresql",
+    dbCredentials: {
+        url: process.env.DATABASE_URL,
+    },
+    verbose: true,
+    strict: true,
+});
+</file>
+
+<file path="package.json">
+{
+  "name": "neogig-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "nodemon src/server.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "ts-node src/db/migrate.ts",
+    "db:studio": "drizzle-kit studio",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@trpc/server": "^11.1.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.14.1",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.42.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "nodemon": "^3.1.9",
+    "postgres": "^3.4.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "zod": "^3.24.3"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.9",
+    "drizzle-kit": "^0.31.0"
+  }
+}
+</file>
+
+<file path="README.md">
+# NeoGig Backend
+
+This is the backend service for the NeoGig application, built with Express.js, tRPC, Drizzle ORM, and PostgreSQL.
+
+## Project Structure
+
+```
+/
+├── dist/                     # Compiled JavaScript output
+├── src/
+│   ├── config/               # Configuration files (tRPC, etc.)
+│   ├── controllers/          # Request handlers (tRPC procedures call these)
+│   ├── db/
+│   │   ├── migrations/       # Database migration files (generated by Drizzle Kit)
+│   │   ├── schema/           # Drizzle ORM schema definitions
+│   │   ├── index.ts          # Drizzle client initialization
+│   │   └── migrate.ts        # Script to run migrations
+│   ├── models/               # Zod schemas for data validation
+│   ├── routes/               # tRPC routers
+│   │   ├── index.ts          # Main tRPC app router
+│   │   └── *.routes.ts       # Feature-specific routers
+│   ├── services/             # Business logic
+│   ├── utils/                # Utility functions
+│   └── server.ts             # Express server setup and tRPC middleware
+├── .env                      # Environment variables (DATABASE_URL, JWT_SECRET)
+├── .gitignore                # Git ignore configuration
+├── drizzle.config.ts         # Drizzle Kit configuration
+├── package.json              # Project dependencies and scripts
+├── tsconfig.json             # TypeScript configuration
+└── README.md                 # This file
+```
+
+## Setup
+
+1.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+2.  **Set up environment variables:**
+    Create a `.env` file in the root directory and add your database connection string and a JWT secret:
+    ```env
+    DATABASE_URL=postgresql://YOUR_DB_USER:YOUR_DB_PASSWORD@YOUR_DB_HOST:YOUR_DB_PORT/YOUR_DB_NAME
+    JWT_SECRET=your_super_secret_jwt_key_here
+    ```
+3.  **Set up PostgreSQL Database:**
+    Ensure you have a PostgreSQL server running and create the database specified in your `DATABASE_URL`.
+
+## Database Migrations
+
+This project uses Drizzle ORM with Drizzle Kit for managing database schema and migrations.
+
+1.  **Modify Schema:** Edit the table definitions in `src/db/schema/*.ts`.
+2.  **Generate Migration:** Run the following command to create a new SQL migration file based on your schema changes:
+    ```bash
+    npm run db:generate
+    ```
+    This will create a new file in `src/db/migrations/`.
+3.  **Apply Migration:** Run the migration against your database:
+    ```bash
+    npm run db:migrate
+    ```
+
+*Optional: Use Drizzle Studio to explore your database:* `npm run db:studio`
+
+## Running the Application
+
+*   **Development Mode (with hot-reloading):**
+    ```bash
+    npm run dev
+    ```
+    The server will start on `http://localhost:3000` (or the port specified in `.env`). Changes in the `src` directory will automatically restart the server.
+
+*   **Production Mode:**
+    1.  Build the TypeScript code:
+        ```bash
+        npm run build
+        ```
+    2.  Start the server:
+        ```bash
+        npm run start
+        ```
+
+## Adding New Features (Routes/Controllers)
+
+1.  **Define Schema (if necessary):** Add or modify tables in `src/db/schema/`.
+2.  **Generate & Apply Migrations:** Run `npm run db:generate` and `npm run db:migrate`.
+3.  **Define Input Validation:** Create Zod schemas for your new endpoint inputs in `src/models/` (e.g., `src/models/feature.models.ts`).
+4.  **Create Service:** Implement the core business logic in `src/services/` (e.g., `src/services/feature.service.ts`). This service will interact with the database (`src/db/index.ts`).
+5.  **Create Controller:** Create a controller in `src/controllers/` (e.g., `src/controllers/feature.controller.ts`). This controller will instantiate and use the corresponding service.
+6.  **Create tRPC Router:** Define the tRPC procedures in `src/routes/` (e.g., `src/routes/feature.routes.ts`). Import the controller and validation schemas. Use `publicProcedure` (or authenticated procedures later) and connect them to controller methods.
+7.  **Mount Router:** Import your new feature router in `src/routes/index.ts` and add it to the `appRouter`.
+
+## API Access
+
+The tRPC API is available at `/trpc`. You can use a tRPC client in your frontend to interact with it type-safely.
+
+Available procedures (so far):
+*   `auth.signup`: Takes email, password, role ('applicant' or 'company'), name, and other role-specific fields.
+*   `auth.login`: Takes email and password.
+</file>
+
+<file path="tsconfig.json">
+{
+    "compilerOptions": {
+        "target": "ES2016",
+        "module": "CommonJS",
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "moduleResolution": "node"
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules", "**/*.spec.ts"]
+}
+</file>
+
+</files>
