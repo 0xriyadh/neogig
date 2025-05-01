@@ -32,6 +32,7 @@ export const jobs = pgTable("jobs", {
     salaryMax: integer("salary_max"),
     jobType: jobTypeEnum("job_type"),
     experienceLevel: experienceLevelEnum("experience_level"),
+    minimumWeeklyHourCommitment: integer("minimum_weekly_hour_commitment"),
     // requiredSkills: text('required_skills').array(), // Or jsonb
     isActive: boolean("is_active").default(true).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
