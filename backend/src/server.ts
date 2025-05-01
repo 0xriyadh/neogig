@@ -2,14 +2,20 @@ import express from "express";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { appRouter } from "./routes";
 import * as dotenv from "dotenv";
-// import cors from 'cors'; // You might need CORS later
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8000;
 
-// app.use(cors()); // Enable CORS if your frontend is on a different origin
+// Enable CORS for frontend requests
+app.use(
+    cors({
+        origin: "http://localhost:9000", // The port your frontend is running on
+        credentials: true,
+    })
+);
 app.use(express.json());
 
 // Create tRPC context (can be expanded later)
