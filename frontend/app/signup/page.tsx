@@ -43,7 +43,6 @@ const signupSchema = z.object({
     role: z.enum(["applicant", "company"], {
         required_error: "Please select a user type",
     }),
-    name: z.string().min(1, { message: "Name is required" }),
 });
 
 type SignupValues = z.infer<typeof signupSchema>;
@@ -59,7 +58,6 @@ export default function SignupPage() {
             email: "",
             password: "",
             role: "applicant",
-            name: "",
         },
     });
 
@@ -127,34 +125,6 @@ export default function SignupPage() {
                                 onSubmit={form.handleSubmit(onSubmit)}
                                 className="space-y-4"
                             >
-                                <FormField
-                                    control={form.control}
-                                    name="name"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>
-                                                {form.getValues("role") ===
-                                                "applicant"
-                                                    ? "Full Name"
-                                                    : "Company Name"}
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    placeholder={
-                                                        form.getValues(
-                                                            "role"
-                                                        ) === "applicant"
-                                                            ? "John Doe"
-                                                            : "Acme Inc."
-                                                    }
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
                                 <FormField
                                     control={form.control}
                                     name="email"

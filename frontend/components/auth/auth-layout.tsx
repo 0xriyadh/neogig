@@ -24,8 +24,8 @@ export function AuthLayout({ children, showSignup = true }: AuthLayoutProps) {
     return (
         <div className="flex min-h-screen">
             {/* Left panel - Illustration/Brand */}
-            <div className="hidden lg:flex lg:w-1/2 bg-primary relative flex-col items-center justify-center">
-                <div className="absolute inset-0 bg-primary/5 backdrop-blur-sm" />
+            <div className="hidden lg:flex lg:w-1/2 relative flex-col items-center justify-center">
+                <div className="absolute inset-0 bg-primary/5 backdrop-blur-md" />
                 <div className="z-10 flex flex-col items-center justify-center space-y-8 px-8 text-center">
                     <div className="flex flex-col items-center justify-center space-y-2">
                         <h1 className="text-4xl font-bold text-white">
