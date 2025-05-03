@@ -108,8 +108,8 @@ export default function JobSeekerDashboard() {
             <div className="container mx-auto p-6 max-w-5xl text-center">
                 <h2 className="text-2xl font-bold mb-4">Error</h2>
                 <p className="text-muted-foreground mb-6">{error}</p>
-                <Button asChild>
-                    <Link href="/login">Back to Login</Link>
+                <Button variant="link" asChild className="mt-4">
+                    <Link href="/auth/login">Back to Login</Link>
                 </Button>
             </div>
         );

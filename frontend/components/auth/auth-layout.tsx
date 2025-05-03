@@ -76,7 +76,9 @@ export function AuthLayout({ children, showSignup = true }: AuthLayoutProps) {
                                             className="p-0 h-auto"
                                             asChild
                                         >
-                                            <Link href="/login">Sign in</Link>
+                                            <Link href="/auth/login">
+                                                Sign in
+                                            </Link>
                                         </Button>
                                     </>
                                 ) : (
@@ -87,7 +89,9 @@ export function AuthLayout({ children, showSignup = true }: AuthLayoutProps) {
                                             className="p-0 h-auto"
                                             asChild
                                         >
-                                            <Link href="/signup">Sign up</Link>
+                                            <Link href="/auth/signup">
+                                                Sign up
+                                            </Link>
                                         </Button>
                                     </>
                                 )}
