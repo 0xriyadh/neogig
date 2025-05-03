@@ -12,7 +12,6 @@ import {
     Card,
     CardContent,
     CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
@@ -44,7 +43,7 @@ const jobSeekerSchema = z.object({
     preferredJobType: z.enum(["REMOTE", "ONSITE", "HYBRID"], {
         required_error: "Please select your preferred job type",
     }),
-    currentlyLookingForJob: z.boolean().default(true),
+    currentlyLookingForJob: z.boolean(),
 });
 
 type JobSeekerValues = z.infer<typeof jobSeekerSchema>;
