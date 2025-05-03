@@ -100,7 +100,7 @@ export default function SignupPage() {
 
     return (
         <AuthLayout>
-            <Card className="border-none shadow-none">
+            <Card className="border-none shadow-none p-8">
                 <CardHeader className="space-y-1 px-0">
                     <CardTitle className="text-2xl font-bold">
                         Create an account
