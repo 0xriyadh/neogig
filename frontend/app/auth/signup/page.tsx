@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -43,6 +43,7 @@ const signupSchema = z.object({
     role: z.enum(["applicant", "company"], {
         required_error: "Please select a user type",
     }),
+    name: z.string().min(1, { message: "Name cannot be empty" }),
 });
 
 type SignupValues = z.infer<typeof signupSchema>;
@@ -51,6 +52,7 @@ export default function SignupPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [nameLabel, setNameLabel] = useState("Name");
 
     const form = useForm<SignupValues>({
         resolver: zodResolver(signupSchema),
@@ -58,8 +60,14 @@ export default function SignupPage() {
             email: "",
             password: "",
             role: "applicant",
+            name: "",
         },
     });
+
+    const selectedRole = form.watch("role");
+    useEffect(() => {
+        setNameLabel(selectedRole === "company" ? "Company Name" : "Full Name");
+    }, [selectedRole]);
 
     async function onSubmit(data: SignupValues) {
         setIsLoading(true);
@@ -125,6 +133,28 @@ export default function SignupPage() {
                                 onSubmit={form.handleSubmit(onSubmit)}
                                 className="space-y-4"
                             >
+                                <FormField
+                                    control={form.control}
+                                    name="name"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>{nameLabel}</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    placeholder={
+                                                        selectedRole ===
+                                                        "company"
+                                                            ? "Your Company Inc."
+                                                            : "John Doe"
+                                                    }
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
                                 <FormField
                                     control={form.control}
                                     name="email"
