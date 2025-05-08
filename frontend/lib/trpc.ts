@@ -1,20 +1,12 @@
 import { createTRPCClient, httpBatchLink, httpLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
-
-// Define common types
-export interface User {
-    id: string;
-    email: string;
-    role: string;
-    createdAt?: string;
-    updatedAt?: string;
-}
+import { type AppRouter } from "../../backend/src/routes/index"; // Import the AppRouter type
 
 // API endpoints
 export const apiUrl = "http://localhost:8000/trpc";
 
 // Create React hooks
-export const trpc = createTRPCReact<any>();
+export const trpc = createTRPCReact<AppRouter>();
 
 // Direct client for non-React usage - using httpLink for better compatibility
 export const trpcClient = createTRPCClient<any>({
