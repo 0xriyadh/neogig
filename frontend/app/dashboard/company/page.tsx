@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { fetchTrpc } from "@/lib/trpc";
+import { useAuth } from "@/lib/auth";
+import { ProtectedRoute } from "@/components/auth/protected-route";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function CompanyDashboard() {
     const router = useRouter();
+    const { logout } = useAuth();
     const [profile, setProfile] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -93,38 +96,11 @@ export default function CompanyDashboard() {
     }, []);
 
     const handleLogout = () => {
-        // Clear auth state and redirect to login
-        router.push("/auth/login");
+        // Use the logout function from auth context
+        logout();
     };
 
-    if (isLoading) {
-        return (
-            <div className="container mx-auto p-6 max-w-5xl">
-                <div className="mb-6 flex justify-between items-center">
-                    <Skeleton className="h-10 w-40" />
-                    <Skeleton className="h-10 w-24" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Skeleton className="h-[300px] w-full" />
-                    <Skeleton className="h-[300px] w-full md:col-span-2" />
-                </div>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="container mx-auto p-6 max-w-5xl text-center">
-                <h2 className="text-2xl font-bold mb-4">Error</h2>
-                <p className="text-muted-foreground mb-6">{error}</p>
-                <Button variant="link" asChild className="mt-4">
-                    <Link href="/auth/login">Back to Login</Link>
-                </Button>
-            </div>
-        );
-    }
-
-    return (
+    const dashboardContent = (
         <div className="container mx-auto p-6 max-w-5xl">
             <div className="mb-6 flex justify-between items-center">
                 <h1 className="text-3xl font-bold">Company Dashboard</h1>
@@ -341,5 +317,38 @@ export default function CompanyDashboard() {
                 </div>
             </div>
         </div>
+    );
+
+    if (isLoading) {
+        return (
+            <div className="container mx-auto p-6 max-w-5xl">
+                <div className="mb-6 flex justify-between items-center">
+                    <Skeleton className="h-10 w-40" />
+                    <Skeleton className="h-10 w-24" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Skeleton className="h-[300px] w-full" />
+                    <Skeleton className="h-[300px] w-full md:col-span-2" />
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="container mx-auto p-6 max-w-5xl text-center">
+                <h2 className="text-2xl font-bold mb-4">Error</h2>
+                <p className="text-muted-foreground mb-6">{error}</p>
+                <Button variant="link" asChild className="mt-4">
+                    <Link href="/auth/login">Back to Login</Link>
+                </Button>
+            </div>
+        );
+    }
+
+    return (
+        <ProtectedRoute requiredRole="employer">
+            {dashboardContent}
+        </ProtectedRoute>
     );
 }

@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { fetchTrpc } from "@/lib/trpc";
+import { useAuth } from "@/lib/auth";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +36,7 @@ type LoginValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
     const router = useRouter();
+    const { login } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -51,25 +53,9 @@ export default function LoginPage() {
         setError(null);
 
         try {
-            console.log("Submitting login data:", data);
-            // Call the login API using the fetchTrpc helper
-            const response = await fetchTrpc<{ user: any; token: string }>(
-                "auth.login",
-                data
-            );
-            console.log("Login response:", response);
-
-            // Store token in localStorage or httpOnly cookie (handled by the API)
-            if (response && response.token) {
-                localStorage.setItem("auth_token", response.token);
-            }
-
-            // Redirect to dashboard based on user role
-            if (response?.user?.role === "applicant") {
-                router.push("/dashboard/jobseeker");
-            } else {
-                router.push("/dashboard/company");
-            }
+            // Use the auth context login function
+            await login(data.email, data.password);
+            // No need to redirect here, the auth context handles redirection based on user role
         } catch (err: any) {
             console.error("Login error:", err);
             const errorMessage = err.message || "Invalid email or password";
