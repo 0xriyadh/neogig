@@ -3,6 +3,8 @@ import { NewUser, User, users } from "../db/schema/user";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
 import { CreateUserInput, UpdateUserInput } from "../models/user.models";
+import schema from "../db/schema";
+import { TRPCError } from "@trpc/server";
 
 export const getAllUsers = async (): Promise<Omit<User, "password">[]> => {
     const allUsers = await db
@@ -116,4 +118,69 @@ export const deleteUser = async (id: string): Promise<boolean> => {
         .returning({ id: users.id });
     // Check if the returning array has any elements, indicating a successful deletion
     return deletedUsers.length > 0;
+};
+
+export const getUserProfileDetails = async (userId: string, role: string) => {
+    try {
+        const baseUser = await db
+            .select({
+                id: schema.users.id,
+                email: schema.users.email,
+                role: schema.users.role,
+                createdAt: schema.users.createdAt,
+                updatedAt: schema.users.updatedAt,
+            })
+            .from(schema.users)
+            .where(eq(schema.users.id, userId))
+            .limit(1);
+
+        if (!baseUser || baseUser.length === 0) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "User not found.",
+            });
+        }
+
+        let profileData: any = null;
+
+        if (role === "applicant") {
+            const jobSeekerProfile = await db
+                .select()
+                .from(schema.jobSeekers)
+                .where(eq(schema.jobSeekers.userId, userId))
+                .limit(1);
+            if (jobSeekerProfile.length > 0) {
+                profileData = jobSeekerProfile[0];
+            } else {
+                console.warn(
+                    `Job seeker profile not found for user ID: ${userId}`
+                );
+            }
+        } else if (role === "company") {
+            const companyProfile = await db
+                .select()
+                .from(schema.companies)
+                .where(eq(schema.companies.userId, userId))
+                .limit(1);
+            if (companyProfile.length > 0) {
+                profileData = companyProfile[0];
+            } else {
+                console.warn(
+                    `Company profile not found for user ID: ${userId}`
+                );
+            }
+        }
+
+        return {
+            ...baseUser[0],
+            profile: profileData,
+        };
+    } catch (error: any) {
+        console.error("Error in getUserProfileDetails:", error);
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to fetch user details.",
+        });
+    }
 };

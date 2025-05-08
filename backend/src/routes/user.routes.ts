@@ -6,70 +6,15 @@ import {
     userIdInputSchema,
 } from "../models/user.models";
 import { TRPCError } from "@trpc/server";
-import { db } from "../db";
-import schema from "../db/schema";
-import { eq } from "drizzle-orm";
 
 export const userRouter = router({
     getMe: protectedProcedure.query(async ({ ctx }) => {
         const { id: userId, role } = ctx.user;
 
         try {
-            const baseUser = await db
-                .select({
-                    id: schema.users.id,
-                    email: schema.users.email,
-                    role: schema.users.role,
-                    createdAt: schema.users.createdAt,
-                    updatedAt: schema.users.updatedAt,
-                })
-                .from(schema.users)
-                .where(eq(schema.users.id, userId))
-                .limit(1);
-
-            if (!baseUser || baseUser.length === 0) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "User not found.",
-                });
-            }
-
-            let profileData: any = null;
-
-            if (role === "applicant") {
-                const jobSeekerProfile = await db
-                    .select()
-                    .from(schema.jobSeekers)
-                    .where(eq(schema.jobSeekers.userId, userId))
-                    .limit(1);
-                if (jobSeekerProfile.length > 0) {
-                    profileData = jobSeekerProfile[0];
-                } else {
-                    console.warn(
-                        `Job seeker profile not found for user ID: ${userId}`
-                    );
-                }
-            } else if (role === "company") {
-                const companyProfile = await db
-                    .select()
-                    .from(schema.companies)
-                    .where(eq(schema.companies.userId, userId))
-                    .limit(1);
-                if (companyProfile.length > 0) {
-                    profileData = companyProfile[0];
-                } else {
-                    console.warn(
-                        `Company profile not found for user ID: ${userId}`
-                    );
-                }
-            }
-
-            return {
-                ...baseUser[0],
-                profile: profileData,
-            };
+            return await userService.getUserProfileDetails(userId, role);
         } catch (error: any) {
-            console.error("Error in getMe:", error);
+            console.error("Error in getMe route:", error);
             if (error instanceof TRPCError) throw error;
             throw new TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
