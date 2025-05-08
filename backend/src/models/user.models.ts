@@ -15,7 +15,7 @@ export const createUserInputSchema = z.object({
     email: z.string().email({ message: "Invalid email address" }),
     password: z
         .string()
-        .min(6, { message: "Password must be at least 6 characters long" }),
+        .min(8, { message: "Password must be at least 6 characters long" }),
     role: z.enum(userRoleEnum.enumValues, {
         errorMap: () => ({ message: "Invalid role" }),
     }),
