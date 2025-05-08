@@ -57,7 +57,7 @@ export class AuthService {
             const userId = newUser.id;
 
             // Create profile (JobSeeker or Company)
-            if (role === "applicant") {
+            if (role === "jobseeker") {
                 await tx.insert(schema.jobSeekers).values({
                     userId,
                     name,

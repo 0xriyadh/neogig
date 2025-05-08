@@ -15,7 +15,7 @@ export class AuthController {
 
     async signup(input: SignupInput) {
         // Type guard to ensure correct profile data is passed
-        if (input.role === "applicant") {
+        if (input.role === "jobseeker") {
             return this.authService.signup(input as ApplicantSignupInput);
         } else {
             return this.authService.signup(input as CompanySignupInput);

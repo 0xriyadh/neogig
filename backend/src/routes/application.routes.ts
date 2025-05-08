@@ -11,7 +11,7 @@ import { TRPCError } from "@trpc/server";
 
 export const applicationRouter = router({
     // Query to get a single application by ID (protected? depends on who can view)
-    getById: publicProcedure // TODO: Add protection (applicant or company owner)
+    getById: publicProcedure // TODO: Add protection (jobseeker or company owner)
         .input(applicationIdInputSchema)
         .query(async ({ input, ctx }) => {
             try {
@@ -53,8 +53,8 @@ export const applicationRouter = router({
             }
         }),
 
-    // Query to get applications by a specific job seeker (protected - applicant only)
-    getBySeekerId: publicProcedure // TODO: Add protection (applicant)
+    // Query to get applications by a specific job seeker (protected - jobseeker only)
+    getBySeekerId: publicProcedure // TODO: Add protection (jobseeker)
         .input(applicationsBySeekerIdInputSchema)
         .query(async ({ input, ctx }) => {
             // TODO: Add check: input.jobSeekerId === ctx.user.id
@@ -74,11 +74,11 @@ export const applicationRouter = router({
 
     // --- Mutations (potentially protected) ---
 
-    // Mutation to create a new application (protected - applicant only)
-    create: publicProcedure // TODO: Replace with protectedProcedure (applicant role)
+    // Mutation to create a new application (protected - jobseeker only)
+    create: publicProcedure // TODO: Replace with protectedProcedure (jobseeker role)
         .input(createApplicationInputSchema)
         .mutation(async ({ input, ctx }) => {
-            // TODO: Add check: ctx.user.role === 'applicant' && ctx.user.id === input.jobSeekerId
+            // TODO: Add check: ctx.user.role === 'jobseeker' && ctx.user.id === input.jobSeekerId
             try {
                 return await applicationService.createApplication(input);
             } catch (error: any) {
@@ -127,8 +127,8 @@ export const applicationRouter = router({
             }
         }),
 
-    // Mutation to delete/withdraw an application (protected - applicant only)
-    delete: publicProcedure // TODO: Replace with protectedProcedure (applicant)
+    // Mutation to delete/withdraw an application (protected - jobseeker only)
+    delete: publicProcedure // TODO: Replace with protectedProcedure (jobseeker)
         .input(applicationIdInputSchema)
         .mutation(async ({ input, ctx }) => {
             // TODO: Add check: applicationBelongsToUser(input.id, ctx.user.id)

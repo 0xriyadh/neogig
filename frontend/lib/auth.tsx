@@ -8,13 +8,20 @@ import {
     ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
+import { fetchTrpc } from "./trpc";
 
 type User = {
     id: string;
     name: string;
     email: string;
-    role: "jobseeker" | "employer" | "admin";
+    role: "jobseeker" | "company" | "admin";
 } | null;
+
+// Define the expected response type from the login API call
+type LoginResponse = {
+    user: NonNullable<User>; // User should not be null upon successful login
+    token: string;
+};
 
 type AuthContextType = {
     user: User;
@@ -59,28 +66,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const login = async (email: string, password: string) => {
         setLoading(true);
         try {
-            // Mock login - replace with actual API call
-            // const response = await fetchTrpc("auth.login", { email, password });
+            // Actual API call with type assertion
+            const response = await fetchTrpc<LoginResponse>("auth.login", {
+                email,
+                password,
+            });
 
-            // Mock successful login
-            const mockUser = {
-                id: "user-123",
-                name: "Jane Doe",
-                email: email,
-                role: "jobseeker" as const,
-            };
+            // Assuming the response contains the user and token
+            const { user: apiUser, token } = response;
 
             // Store auth token and user data
-            localStorage.setItem("authToken", "mock-jwt-token");
-            localStorage.setItem("userData", JSON.stringify(mockUser));
+            localStorage.setItem("authToken", token);
+            localStorage.setItem("userData", JSON.stringify(apiUser));
 
-            setUser(mockUser);
+            setUser(apiUser);
+            console.log("sdfgsffs", apiUser);
 
             // Redirect based on user role
-            if (mockUser.role === "jobseeker") {
+            if (apiUser.role === "jobseeker") {
                 router.push("/dashboard/jobseeker");
-            } else if (mockUser.role === "employer") {
-                router.push("/dashboard/employer");
+            } else if (apiUser.role === "company") {
+                router.push("/dashboard/company");
             }
         } catch (error) {
             console.error("Login error:", error);

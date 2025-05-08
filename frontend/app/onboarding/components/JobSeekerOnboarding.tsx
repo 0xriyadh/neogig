@@ -49,7 +49,7 @@ const jobSeekerSchema = z.object({
 
 type JobSeekerValues = z.infer<typeof jobSeekerSchema>;
 
-export function ApplicantOnboarding() {
+export function JobSeekerOnboarding() {
     const router = useRouter();
     const { user } = useAuth();
     const [isLoading, setIsLoading] = useState(false);

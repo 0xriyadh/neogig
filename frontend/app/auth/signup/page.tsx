@@ -40,7 +40,7 @@ const signupSchema = z.object({
     password: z
         .string()
         .min(8, { message: "Password must be at least 8 characters" }),
-    role: z.enum(["applicant", "company"], {
+    role: z.enum(["jobseeker", "company"], {
         required_error: "Please select a user type",
     }),
     name: z.string().min(1, { message: "Name cannot be empty" }),
@@ -59,7 +59,7 @@ export default function SignupPage() {
         defaultValues: {
             email: "",
             password: "",
-            role: "applicant",
+            role: "jobseeker",
             name: "",
         },
     });
@@ -110,12 +110,12 @@ export default function SignupPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="px-0">
-                    <Tabs defaultValue="applicant" className="w-full">
+                    <Tabs defaultValue="jobseeker" className="w-full">
                         <TabsList className="grid w-full grid-cols-2 mb-6">
                             <TabsTrigger
-                                value="applicant"
+                                value="jobseeker"
                                 onClick={() =>
-                                    form.setValue("role", "applicant")
+                                    form.setValue("role", "jobseeker")
                                 }
                             >
                                 Job Seeker

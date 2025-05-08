@@ -94,5 +94,5 @@ This project uses Drizzle ORM with Drizzle Kit for managing database schema and 
 The tRPC API is available at `/trpc`. You can use a tRPC client in your frontend to interact with it type-safely.
 
 Available procedures (so far):
-*   `auth.signup`: Takes email, password, role ('applicant' or 'company'), name, and other role-specific fields.
+*   `auth.signup`: Takes email, password, role ('jobseeker' or 'company'), name, and other role-specific fields.
 *   `auth.login`: Takes email and password. 

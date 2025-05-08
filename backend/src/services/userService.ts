@@ -143,7 +143,7 @@ export const getUserProfileDetails = async (userId: string, role: string) => {
 
         let profileData: any = null;
 
-        if (role === "applicant") {
+        if (role === "jobseeker") {
             const jobSeekerProfile = await db
                 .select()
                 .from(schema.jobSeekers)

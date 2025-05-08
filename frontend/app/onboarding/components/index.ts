@@ -1,2 +1,2 @@
-export { ApplicantOnboarding } from "./ApplicantOnboarding";
+export { ApplicantOnboarding } from "./JobSeekerOnboarding";
 export { CompanyOnboarding } from "./CompanyOnboarding";

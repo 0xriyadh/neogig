@@ -4,7 +4,7 @@ import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { ProtectedRoute } from "@/components/auth/protected-route";
-import { ApplicantOnboarding } from "../components/ApplicantOnboarding";
+import { JobSeekerOnboarding } from "../components/JobSeekerOnboarding";
 import { CompanyOnboarding } from "../components/CompanyOnboarding";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -28,14 +28,14 @@ export default function RoleBasedOnboarding({
 
         // Check if user role matches the requested onboarding role
         const isValidRole =
-            (resolvedParams.role === "applicant" &&
+            (resolvedParams.role === "jobseeker" &&
                 user.role === "jobseeker") ||
-            (resolvedParams.role === "company" && user.role === "employer");
+            (resolvedParams.role === "company" && user.role === "company");
 
         if (!isValidRole) {
             // If roles don't match, redirect to the appropriate dashboard
             router.push(
-                user.role === "employer"
+                user.role === "company"
                     ? "/dashboard/company"
                     : "/dashboard/jobseeker"
             );
@@ -65,8 +65,8 @@ export default function RoleBasedOnboarding({
     // Render the appropriate onboarding component based on the role
     const renderOnboarding = () => {
         switch (resolvedParams.role) {
-            case "applicant":
-                return <ApplicantOnboarding />;
+            case "jobseeker":
+                return <JobSeekerOnboarding />;
             case "company":
                 return <CompanyOnboarding />;
             default:

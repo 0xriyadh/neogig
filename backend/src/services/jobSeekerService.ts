@@ -32,7 +32,7 @@ export const createJobSeeker = async (
         throw new Error("Job seeker profile already exists for this user");
     }
 
-    // Optional: Further check if the user exists and has the 'applicant' role in the users table
+    // Optional: Further check if the user exists and has the 'jobseeker' role in the users table
 
     const newSeeker: NewJobSeeker = {
         ...seekerData,

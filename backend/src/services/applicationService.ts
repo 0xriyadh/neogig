@@ -107,7 +107,7 @@ export const updateApplication = async (
         return undefined; // Or throw: Application not found
     }
 
-    // Add permission checks: Only the company that owns the job or the applicant should update?
+    // Add permission checks: Only the company that owns the job or the jobseeker should update?
     // For now, only allowing status update:
     const updatedData: Partial<
         Omit<
@@ -128,9 +128,9 @@ export const updateApplication = async (
     return updatedApp[0];
 };
 
-// Service to delete an application (e.g., applicant withdraws)
+// Service to delete an application (e.g., jobseeker withdraws)
 export const deleteApplication = async (id: string): Promise<boolean> => {
-    // Add permission check: Only the applicant who made the application can delete?
+    // Add permission check: Only the jobseeker who made the application can delete?
     const deletedApps = await db
         .delete(applications)
         .where(eq(applications.id, id))

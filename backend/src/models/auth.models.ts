@@ -15,9 +15,9 @@ const BaseSignupSchema = z.object({
 
 // Applicant specific signup fields
 export const ApplicantSignupSchema = BaseSignupSchema.extend({
-    role: z.literal(userRoleEnum.enumValues[0]), // 'applicant'
+    role: z.literal(userRoleEnum.enumValues[0]), // 'jobseeker'
     name: z.string().min(1, "Name is required"),
-    // Add other required applicant fields from JobSeeker schema if needed for signup
+    // Add other required jobseeker fields from JobSeeker schema if needed for signup
     // e.g., mobile: z.string().optional(),
 });
 

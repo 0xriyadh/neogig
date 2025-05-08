@@ -15,7 +15,7 @@ export default function HomePage() {
         if (isAuthenticated) {
             if (user?.role === "jobseeker") {
                 router.push("/dashboard/jobseeker");
-            } else if (user?.role === "employer") {
+            } else if (user?.role === "company") {
                 router.push("/dashboard/company");
             } else {
                 // For any other role or if role is not defined
