@@ -347,7 +347,7 @@ export default function CompanyDashboard() {
     }
 
     return (
-        <ProtectedRoute requiredRole="employer">
+        <ProtectedRoute requiredRole="company">
             {dashboardContent}
         </ProtectedRoute>
     );

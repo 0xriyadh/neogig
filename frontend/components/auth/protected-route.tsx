@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
-    requiredRole?: "jobseeker" | "employer" | "admin";
+    requiredRole?: "jobseeker" | "company" | "admin";
 }
 
 export function ProtectedRoute({
@@ -33,8 +33,8 @@ export function ProtectedRoute({
             // Redirect to the appropriate dashboard based on role
             if (user?.role === "jobseeker") {
                 router.push("/dashboard/jobseeker");
-            } else if (user?.role === "employer") {
-                router.push("/dashboard/employer");
+            } else if (user?.role === "company") {
+                router.push("/dashboard/company");
             } else {
                 router.push("/auth/login");
             }
