@@ -7,13 +7,13 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { fetchTrpc } from "@/lib/trpc";
 import { useAuth } from "@/lib/auth";
-import { ProtectedRoute } from "@/components/auth/protected-route";
 
 import { Button } from "@/components/ui/button";
 import {
     Card,
     CardContent,
     CardDescription,
+    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
@@ -36,40 +36,43 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Define the job seeker schema based on backend requirements
-const jobSeekerSchema = z.object({
-    address: z.string().optional(),
-    gender: z.string().optional(),
-    mobile: z.string().optional(),
-    description: z.string().optional(),
-    preferredJobType: z.enum(["REMOTE", "ONSITE", "HYBRID"], {
-        required_error: "Please select your preferred job type",
-    }),
-    currentlyLookingForJob: z.boolean(),
+// Define the company schema based on backend requirements
+const companySchema = z.object({
+    location: z.string().optional(),
+    phone: z.string().optional(),
+    industry: z.enum(
+        ["TECH", "AGRI", "HEALTH", "FINANCE", "EDUCATION", "OTHER"],
+        {
+            required_error: "Please select your industry",
+        }
+    ),
+    description: z
+        .string()
+        .min(1, { message: "Company description is required" }),
+    registrationDate: z.string().optional(),
 });
 
-type JobSeekerValues = z.infer<typeof jobSeekerSchema>;
+type CompanyValues = z.infer<typeof companySchema>;
 
-export default function JobSeekerOnboarding() {
+export function CompanyOnboarding() {
     const router = useRouter();
     const { user } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState(1);
 
-    const form = useForm<JobSeekerValues>({
-        resolver: zodResolver(jobSeekerSchema),
+    const form = useForm<CompanyValues>({
+        resolver: zodResolver(companySchema),
         defaultValues: {
-            address: "",
-            gender: "",
-            mobile: "",
+            location: "",
+            phone: "",
+            industry: "TECH",
             description: "",
-            preferredJobType: "REMOTE",
-            currentlyLookingForJob: true,
+            registrationDate: new Date().toISOString().split("T")[0], // Current date in YYYY-MM-DD format
         },
     });
 
-    async function onSubmit(data: JobSeekerValues) {
+    async function onSubmit(data: CompanyValues) {
         setIsLoading(true);
         setError(null);
 
@@ -80,14 +83,14 @@ export default function JobSeekerOnboarding() {
                 throw new Error("User not authenticated");
             }
 
-            // Use the fetchTrpc helper to call the create job seeker mutation
-            await fetchTrpc("jobSeeker.create", {
+            // Use the fetchTrpc helper to call the create company mutation
+            await fetchTrpc("company.create", {
                 userId,
                 ...data,
             });
 
             // Redirect to the dashboard
-            router.push("/dashboard/jobseeker");
+            router.push("/dashboard/company");
         } catch (err: any) {
             setError(err.message || "An error occurred");
         } finally {
@@ -95,15 +98,16 @@ export default function JobSeekerOnboarding() {
         }
     }
 
-    const onboardingContent = (
+    return (
         <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
             <Card className="w-full max-w-2xl">
                 <CardHeader className="space-y-1">
                     <CardTitle className="text-2xl font-bold">
-                        Complete your profile
+                        Complete your company profile
                     </CardTitle>
                     <CardDescription>
-                        Tell us more about yourself to help find the perfect job
+                        Tell us more about your company to attract the right
+                        talent
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -118,21 +122,21 @@ export default function JobSeekerOnboarding() {
                                 onClick={() => setStep(1)}
                                 disabled={isLoading}
                             >
-                                Personal Info
+                                Company Info
                             </TabsTrigger>
                             <TabsTrigger
                                 value="step2"
                                 onClick={() => setStep(2)}
                                 disabled={isLoading}
                             >
-                                Preferences
+                                Description
                             </TabsTrigger>
                             <TabsTrigger
                                 value="step3"
                                 onClick={() => setStep(3)}
                                 disabled={isLoading}
                             >
-                                Summary
+                                Review
                             </TabsTrigger>
                         </TabsList>
 
@@ -145,15 +149,15 @@ export default function JobSeekerOnboarding() {
                                     <div className="space-y-4">
                                         <FormField
                                             control={form.control}
-                                            name="address"
+                                            name="location"
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>
-                                                        Address
+                                                        Company Location
                                                     </FormLabel>
                                                     <FormControl>
                                                         <Input
-                                                            placeholder="123 Main St, City, Country"
+                                                            placeholder="123 Business St, City, Country"
                                                             {...field}
                                                         />
                                                     </FormControl>
@@ -164,11 +168,30 @@ export default function JobSeekerOnboarding() {
 
                                         <FormField
                                             control={form.control}
-                                            name="gender"
+                                            name="phone"
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>
-                                                        Gender
+                                                        Company Phone
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            placeholder="+1 (555) 000-0000"
+                                                            {...field}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        <FormField
+                                            control={form.control}
+                                            name="industry"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>
+                                                        Industry
                                                     </FormLabel>
                                                     <Select
                                                         onValueChange={
@@ -180,22 +203,27 @@ export default function JobSeekerOnboarding() {
                                                     >
                                                         <FormControl>
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder="Select your gender" />
+                                                                <SelectValue placeholder="Select your industry" />
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
-                                                            <SelectItem value="male">
-                                                                Male
+                                                            <SelectItem value="TECH">
+                                                                Technology
                                                             </SelectItem>
-                                                            <SelectItem value="female">
-                                                                Female
+                                                            <SelectItem value="AGRI">
+                                                                Agriculture
                                                             </SelectItem>
-                                                            <SelectItem value="non-binary">
-                                                                Non-binary
+                                                            <SelectItem value="HEALTH">
+                                                                Healthcare
                                                             </SelectItem>
-                                                            <SelectItem value="prefer-not-to-say">
-                                                                Prefer not to
-                                                                say
+                                                            <SelectItem value="FINANCE">
+                                                                Finance
+                                                            </SelectItem>
+                                                            <SelectItem value="EDUCATION">
+                                                                Education
+                                                            </SelectItem>
+                                                            <SelectItem value="OTHER">
+                                                                Other
                                                             </SelectItem>
                                                         </SelectContent>
                                                     </Select>
@@ -206,15 +234,15 @@ export default function JobSeekerOnboarding() {
 
                                         <FormField
                                             control={form.control}
-                                            name="mobile"
+                                            name="registrationDate"
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>
-                                                        Mobile Number
+                                                        Registration Date
                                                     </FormLabel>
                                                     <FormControl>
                                                         <Input
-                                                            placeholder="+1 (555) 000-0000"
+                                                            type="date"
                                                             {...field}
                                                         />
                                                     </FormControl>
@@ -237,54 +265,16 @@ export default function JobSeekerOnboarding() {
                                     <div className="space-y-4">
                                         <FormField
                                             control={form.control}
-                                            name="preferredJobType"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>
-                                                        Preferred Job Type
-                                                    </FormLabel>
-                                                    <Select
-                                                        onValueChange={
-                                                            field.onChange
-                                                        }
-                                                        defaultValue={
-                                                            field.value
-                                                        }
-                                                    >
-                                                        <FormControl>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder="Select job type" />
-                                                            </SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="REMOTE">
-                                                                Remote
-                                                            </SelectItem>
-                                                            <SelectItem value="ONSITE">
-                                                                On-site
-                                                            </SelectItem>
-                                                            <SelectItem value="HYBRID">
-                                                                Hybrid
-                                                            </SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
                                             name="description"
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>
-                                                        Professional Summary
+                                                        Company Description
                                                     </FormLabel>
                                                     <FormControl>
                                                         <Textarea
-                                                            placeholder="Briefly describe your skills, experience, and career goals..."
-                                                            className="min-h-[120px]"
+                                                            placeholder="Describe your company's mission, values, and what makes it a great place to work..."
+                                                            className="min-h-[200px]"
                                                             {...field}
                                                         />
                                                     </FormControl>
@@ -317,46 +307,46 @@ export default function JobSeekerOnboarding() {
                                     <div className="space-y-4">
                                         <div className="rounded-lg bg-muted p-4">
                                             <h3 className="font-medium mb-2">
-                                                Profile Summary
+                                                Company Profile Summary
                                             </h3>
                                             <div className="space-y-2 text-sm">
                                                 <div className="grid grid-cols-2 gap-2">
                                                     <span className="text-muted-foreground">
-                                                        Address:
+                                                        Location:
                                                     </span>
                                                     <span>
                                                         {form.getValues(
-                                                            "address"
+                                                            "location"
                                                         ) || "Not provided"}
                                                     </span>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-2">
                                                     <span className="text-muted-foreground">
-                                                        Gender:
+                                                        Phone:
                                                     </span>
                                                     <span>
                                                         {form.getValues(
-                                                            "gender"
+                                                            "phone"
                                                         ) || "Not provided"}
                                                     </span>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-2">
                                                     <span className="text-muted-foreground">
-                                                        Mobile:
+                                                        Industry:
                                                     </span>
                                                     <span>
                                                         {form.getValues(
-                                                            "mobile"
-                                                        ) || "Not provided"}
+                                                            "industry"
+                                                        )}
                                                     </span>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-2">
                                                     <span className="text-muted-foreground">
-                                                        Preferred Job Type:
+                                                        Registration Date:
                                                     </span>
                                                     <span>
                                                         {form.getValues(
-                                                            "preferredJobType"
+                                                            "registrationDate"
                                                         )}
                                                     </span>
                                                 </div>
@@ -365,8 +355,7 @@ export default function JobSeekerOnboarding() {
                                                 ) && (
                                                     <div className="mt-2">
                                                         <span className="text-muted-foreground">
-                                                            Professional
-                                                            Summary:
+                                                            Company Description:
                                                         </span>
                                                         <p className="mt-1">
                                                             {form.getValues(
@@ -384,45 +373,25 @@ export default function JobSeekerOnboarding() {
                                             </p>
                                         )}
 
-                                        <div className="flex justify-between">
-                                            {step > 1 && (
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    onClick={() =>
-                                                        setStep(step - 1)
-                                                    }
-                                                    disabled={isLoading}
-                                                >
-                                                    Previous
-                                                </Button>
-                                            )}
-                                            {step < 3 ? (
-                                                <Button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        setStep(step + 1)
-                                                    }
-                                                    disabled={isLoading}
-                                                    className={
-                                                        step > 1
-                                                            ? "ml-auto"
-                                                            : ""
-                                                    }
-                                                >
-                                                    Next
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    type="submit"
-                                                    disabled={isLoading}
-                                                    className="ml-auto"
-                                                >
-                                                    {isLoading
-                                                        ? "Saving..."
-                                                        : "Complete Profile"}
-                                                </Button>
-                                            )}
+                                        <div className="flex space-x-2">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={() => setStep(2)}
+                                                className="flex-1"
+                                                disabled={isLoading}
+                                            >
+                                                Back
+                                            </Button>
+                                            <Button
+                                                type="submit"
+                                                className="flex-1"
+                                                disabled={isLoading}
+                                            >
+                                                {isLoading
+                                                    ? "Completing Setup..."
+                                                    : "Complete Setup"}
+                                            </Button>
                                         </div>
                                     </div>
                                 </TabsContent>
@@ -432,11 +401,5 @@ export default function JobSeekerOnboarding() {
                 </CardContent>
             </Card>
         </div>
-    );
-
-    return (
-        <ProtectedRoute requiredRole="jobseeker">
-            {onboardingContent}
-        </ProtectedRoute>
     );
 }
