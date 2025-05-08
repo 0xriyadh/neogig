@@ -12,6 +12,7 @@ export const getAllUsers = async (): Promise<Omit<User, "password">[]> => {
             id: users.id,
             email: users.email,
             role: users.role,
+            profileCompleted: users.profileCompleted,
             createdAt: users.createdAt,
             updatedAt: users.updatedAt,
         })
@@ -27,6 +28,7 @@ export const getUserById = async (
             id: users.id,
             email: users.email,
             role: users.role,
+            profileCompleted: users.profileCompleted,
             createdAt: users.createdAt,
             updatedAt: users.updatedAt,
         })
@@ -62,6 +64,7 @@ export const createUser = async (
         id: users.id,
         email: users.email,
         role: users.role,
+        profileCompleted: users.profileCompleted,
         createdAt: users.createdAt,
         updatedAt: users.updatedAt,
     });
@@ -104,6 +107,7 @@ export const updateUser = async (
             id: users.id,
             email: users.email,
             role: users.role,
+            profileCompleted: users.profileCompleted,
             createdAt: users.createdAt,
             updatedAt: users.updatedAt,
         });
@@ -127,6 +131,7 @@ export const getUserProfileDetails = async (userId: string, role: string) => {
                 id: schema.users.id,
                 email: schema.users.email,
                 role: schema.users.role,
+                profileCompleted: schema.users.profileCompleted,
                 createdAt: schema.users.createdAt,
                 updatedAt: schema.users.updatedAt,
             })
