@@ -3,6 +3,7 @@ import * as trpcExpress from "@trpc/server/adapters/express";
 import { appRouter } from "./routes";
 import * as dotenv from "dotenv";
 import cors from "cors";
+import jwt from "jsonwebtoken";
 
 dotenv.config();
 
@@ -18,11 +19,60 @@ app.use(
 );
 app.use(express.json());
 
-// Create tRPC context (can be expanded later)
+// Define a type for the user payload in the context
+interface UserPayload {
+    id: string;
+    role: string;
+}
+
+// Define a type for our context
+export interface Context {
+    req: trpcExpress.CreateExpressContextOptions["req"];
+    res: trpcExpress.CreateExpressContextOptions["res"];
+    user: UserPayload | null;
+}
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    // Ensure JWT_SECRET is loaded, or throw an error.
+    // Consider a more robust secret management strategy for production.
+    console.error("FATAL ERROR: JWT_SECRET environment variable is not set.");
+    process.exit(1);
+}
+
+// Create tRPC context
 const createContext = ({
     req,
     res,
-}: trpcExpress.CreateExpressContextOptions) => ({});
+}: trpcExpress.CreateExpressContextOptions): Context => {
+    let user: UserPayload | null = null;
+    const authHeader = req.headers.authorization;
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+        const token = authHeader.split(" ")[1];
+        try {
+            // Ensure decoded token has the expected fields before assigning
+            // The payload from auth.service.ts is { userId: string, role: string }
+            const decoded = jwt.verify(token, JWT_SECRET) as jwt.JwtPayload & {
+                userId: string;
+                role: string;
+            };
+            if (
+                decoded &&
+                typeof decoded.userId === "string" &&
+                typeof decoded.role === "string"
+            ) {
+                user = { id: decoded.userId, role: decoded.role };
+            }
+        } catch (error) {
+            // Token verification failed (e.g., expired, invalid)
+            console.warn("JWT verification failed:", error);
+            // user remains null
+        }
+    }
+
+    return { req, res, user };
+};
 
 app.use(
     "/trpc",
