@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { fetchTrpc } from "@/lib/trpc";
+import { useAuth } from "@/lib/auth";
+import { ProtectedRoute } from "@/components/auth/protected-route";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -55,6 +57,7 @@ type CompanyValues = z.infer<typeof companySchema>;
 
 export default function CompanyOnboarding() {
     const router = useRouter();
+    const { user } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState(1);
@@ -75,8 +78,11 @@ export default function CompanyOnboarding() {
         setError(null);
 
         try {
-            // Get the user ID from local storage or cookies
-            const userId = "user-id"; // Replace with actual user ID retrieval
+            // Get the user ID from auth context
+            const userId = user?.id;
+            if (!userId) {
+                throw new Error("User not authenticated");
+            }
 
             // Use the fetchTrpc helper to call the create company mutation
             await fetchTrpc("company.create", {
@@ -93,7 +99,8 @@ export default function CompanyOnboarding() {
         }
     }
 
-    return (
+    // Wrap the entire UI in onboardingContent
+    const onboardingContent = (
         <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
             <Card className="w-full max-w-2xl">
                 <CardHeader className="space-y-1">
@@ -396,5 +403,11 @@ export default function CompanyOnboarding() {
                 </CardContent>
             </Card>
         </div>
+    );
+
+    return (
+        <ProtectedRoute requiredRole="employer">
+            {onboardingContent}
+        </ProtectedRoute>
     );
 }

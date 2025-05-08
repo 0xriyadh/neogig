@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { fetchTrpc } from "@/lib/trpc";
+import { useAuth } from "@/lib/auth";
+import { ProtectedRoute } from "@/components/auth/protected-route";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -50,6 +52,7 @@ type JobSeekerValues = z.infer<typeof jobSeekerSchema>;
 
 export default function JobSeekerOnboarding() {
     const router = useRouter();
+    const { user } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState(1);
@@ -71,8 +74,11 @@ export default function JobSeekerOnboarding() {
         setError(null);
 
         try {
-            // Get the user ID from local storage or cookies
-            const userId = "user-id"; // Replace with actual user ID retrieval
+            // Get the user ID from auth context
+            const userId = user?.id;
+            if (!userId) {
+                throw new Error("User not authenticated");
+            }
 
             // Use the fetchTrpc helper to call the create job seeker mutation
             await fetchTrpc("jobSeeker.create", {
@@ -89,7 +95,7 @@ export default function JobSeekerOnboarding() {
         }
     }
 
-    return (
+    const onboardingContent = (
         <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
             <Card className="w-full max-w-2xl">
                 <CardHeader className="space-y-1">
@@ -378,25 +384,45 @@ export default function JobSeekerOnboarding() {
                                             </p>
                                         )}
 
-                                        <div className="flex space-x-2">
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                onClick={() => setStep(2)}
-                                                className="flex-1"
-                                                disabled={isLoading}
-                                            >
-                                                Back
-                                            </Button>
-                                            <Button
-                                                type="submit"
-                                                className="flex-1"
-                                                disabled={isLoading}
-                                            >
-                                                {isLoading
-                                                    ? "Completing Setup..."
-                                                    : "Complete Setup"}
-                                            </Button>
+                                        <div className="flex justify-between">
+                                            {step > 1 && (
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    onClick={() =>
+                                                        setStep(step - 1)
+                                                    }
+                                                    disabled={isLoading}
+                                                >
+                                                    Previous
+                                                </Button>
+                                            )}
+                                            {step < 3 ? (
+                                                <Button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setStep(step + 1)
+                                                    }
+                                                    disabled={isLoading}
+                                                    className={
+                                                        step > 1
+                                                            ? "ml-auto"
+                                                            : ""
+                                                    }
+                                                >
+                                                    Next
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    type="submit"
+                                                    disabled={isLoading}
+                                                    className="ml-auto"
+                                                >
+                                                    {isLoading
+                                                        ? "Saving..."
+                                                        : "Complete Profile"}
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
                                 </TabsContent>
@@ -406,5 +432,11 @@ export default function JobSeekerOnboarding() {
                 </CardContent>
             </Card>
         </div>
+    );
+
+    return (
+        <ProtectedRoute requiredRole="jobseeker">
+            {onboardingContent}
+        </ProtectedRoute>
     );
 }
