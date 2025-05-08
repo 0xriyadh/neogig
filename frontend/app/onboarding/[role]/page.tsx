@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { ProtectedRoute } from "@/components/auth/protected-route";
@@ -11,8 +11,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function RoleBasedOnboarding({
     params,
 }: {
-    params: { role: string };
+    params: Promise<{ role: string }>;
 }) {
+    const resolvedParams = use(params);
     const { user } = useAuth();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
@@ -27,8 +28,9 @@ export default function RoleBasedOnboarding({
 
         // Check if user role matches the requested onboarding role
         const isValidRole =
-            (params.role === "applicant" && user.role === "jobseeker") ||
-            (params.role === "company" && user.role === "employer");
+            (resolvedParams.role === "applicant" &&
+                user.role === "jobseeker") ||
+            (resolvedParams.role === "company" && user.role === "employer");
 
         if (!isValidRole) {
             // If roles don't match, redirect to the appropriate dashboard
@@ -41,7 +43,7 @@ export default function RoleBasedOnboarding({
         }
 
         setLoading(false);
-    }, [user, params.role, router]);
+    }, [user, resolvedParams.role, router]);
 
     // Loading state while checking roles
     if (loading) {
@@ -62,7 +64,7 @@ export default function RoleBasedOnboarding({
 
     // Render the appropriate onboarding component based on the role
     const renderOnboarding = () => {
-        switch (params.role) {
+        switch (resolvedParams.role) {
             case "applicant":
                 return <ApplicantOnboarding />;
             case "company":
