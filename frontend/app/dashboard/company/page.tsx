@@ -94,7 +94,7 @@ export default function CompanyDashboard() {
 
     const handleLogout = () => {
         // Clear auth state and redirect to login
-        router.push("/login");
+        router.push("/auth/login");
     };
 
     if (isLoading) {
