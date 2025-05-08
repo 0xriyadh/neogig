@@ -3,8 +3,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import LandingPage from "./landing-page/page";
 
 export default function HomePage() {
@@ -15,7 +13,6 @@ export default function HomePage() {
         if (loading) return;
 
         if (isAuthenticated) {
-            // Redirect based on user role
             if (user?.role === "jobseeker") {
                 router.push("/dashboard/jobseeker");
             } else if (user?.role === "employer") {
@@ -25,10 +22,8 @@ export default function HomePage() {
                 router.push("/dashboard/jobseeker");
             }
         }
-        // Removed redirection for unauthenticated users
     }, [loading, isAuthenticated, user, router]);
 
-    // Show loading state while authentication is being checked
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -37,7 +32,6 @@ export default function HomePage() {
         );
     }
 
-    // If authenticated, we're redirecting so we can show a loading state
     if (isAuthenticated) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -46,6 +40,5 @@ export default function HomePage() {
         );
     }
 
-    // Landing page content for unauthenticated users
     return <LandingPage />;
 }
