@@ -5,31 +5,32 @@ import { useCurrentUser } from "@/lib/hooks/useCurrentUser";
 import { redirect } from "next/navigation";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
     return <DashboardLayoutClient>{children}</DashboardLayoutClient>;
 }
 
 function DashboardLayoutClient({ children }: { children: ReactNode }) {
-    const { currentUser, isLoading } = useCurrentUser();
+    const { user, loading: isLoading } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
         // If not authenticated, redirect to login
-        if (!isLoading && !currentUser) {
+        if (!isLoading && !user) {
             router.push("/auth/login");
             return;
         }
 
         // Check if profile is completed and redirect to appropriate onboarding if not
-        if (!isLoading && currentUser && !currentUser.profileCompleted) {
-            if (currentUser.role === "company") {
+        if (!isLoading && user && !user.profileCompleted) {
+            if (user.role === "company") {
                 router.push("/onboarding/company");
-            } else if (currentUser.role === "jobseeker") {
+            } else if (user.role === "jobseeker") {
                 router.push("/onboarding/jobseeker");
             }
         }
-    }, [currentUser, isLoading, router]);
+    }, [user, isLoading, router]);
 
     // If still loading, show a loading state
     if (isLoading) {
@@ -37,11 +38,11 @@ function DashboardLayoutClient({ children }: { children: ReactNode }) {
     }
 
     // Only render children if user is authenticated and profile is completed
-    if (!currentUser) {
+    if (!user) {
         return <div>Redirecting to login...</div>;
     }
 
-    if (!currentUser.profileCompleted) {
+    if (!user.profileCompleted) {
         return <div>Redirecting to onboarding...</div>;
     }
 

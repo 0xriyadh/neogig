@@ -9,13 +9,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { fetchTrpc } from "./trpc";
-
-type User = {
-    id: string;
-    name: string;
-    email: string;
-    role: "jobseeker" | "company" | "admin";
-} | null;
+import { User } from "@/types/user-types";
 
 // Define the expected response type from the login API call
 type LoginResponse = {
@@ -34,7 +28,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
@@ -107,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return (
         <AuthContext.Provider
             value={{
-                user,
+                user: user as User,
                 loading,
                 login,
                 logout,

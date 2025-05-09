@@ -14,11 +14,14 @@ export default function RoleBasedOnboarding({
     params: Promise<{ role: string }>;
 }) {
     const resolvedParams = use(params);
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // Wait until auth is finished loading before making any decisions
+        if (authLoading) return;
+
         // Verify if the user's role matches the requested onboarding role
         if (!user) {
             // If no user, redirect to login
@@ -43,10 +46,10 @@ export default function RoleBasedOnboarding({
         }
 
         setLoading(false);
-    }, [user, resolvedParams.role, router]);
+    }, [user, resolvedParams.role, router, authLoading]);
 
     // Loading state while checking roles
-    if (loading) {
+    if (loading || authLoading) {
         return (
             <div className="flex min-h-screen items-center justify-center">
                 <div className="w-full max-w-md space-y-4">
