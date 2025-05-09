@@ -12,25 +12,24 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 }
 
 function DashboardLayoutClient({ children }: { children: ReactNode }) {
-    const { user, loading: isLoading } = useAuth();
+    const { currentUser, loading: isLoading } = useCurrentUser();
     const router = useRouter();
 
     useEffect(() => {
         // If not authenticated, redirect to login
-        if (!isLoading && !user) {
+        if (!isLoading && !currentUser) {
             router.push("/auth/login");
             return;
         }
-
         // Check if profile is completed and redirect to appropriate onboarding if not
-        if (!isLoading && user && !user.profileCompleted) {
-            if (user.role === "company") {
+        if (!isLoading && currentUser && !currentUser.profileCompleted) {
+            if (currentUser.role === "company") {
                 router.push("/onboarding/company");
-            } else if (user.role === "jobseeker") {
+            } else if (currentUser.role === "jobseeker") {
                 router.push("/onboarding/jobseeker");
             }
         }
-    }, [user, isLoading, router]);
+    }, [currentUser, isLoading, router]);
 
     // If still loading, show a loading state
     if (isLoading) {
@@ -38,11 +37,11 @@ function DashboardLayoutClient({ children }: { children: ReactNode }) {
     }
 
     // Only render children if user is authenticated and profile is completed
-    if (!user) {
+    if (!currentUser) {
         return <div>Redirecting to login...</div>;
     }
 
-    if (!user.profileCompleted) {
+    if (!currentUser.profileCompleted) {
         return <div>Redirecting to onboarding...</div>;
     }
 

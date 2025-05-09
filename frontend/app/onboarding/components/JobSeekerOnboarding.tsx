@@ -55,10 +55,27 @@ export function JobSeekerOnboarding() {
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState(1);
 
-    // Use tRPC mutation hook
+    // User profile update mutation
+    const updateUserMutation = trpc.user.update.useMutation({
+        onError: (err) => {
+            setError(err.message || "Failed to update user profile");
+        },
+    });
+
+    // Job seeker update mutation
     const updateJobSeekerMutation = trpc.jobSeeker.update.useMutation({
-        onSuccess: () => {
-            router.push("/dashboard/jobseeker");
+        onSuccess: async () => {
+            if (user?.id) {
+                try {
+                    await updateUserMutation.mutateAsync({
+                        id: user.id,
+                        profileCompleted: true,
+                    });
+                    router.push("/dashboard/jobseeker");
+                } catch (err) {
+                    console.log(err);
+                }
+            }
         },
         onError: (err) => {
             setError(err.message || "An error occurred");
@@ -93,14 +110,16 @@ export function JobSeekerOnboarding() {
                 ...data,
             });
 
-            // Note: No need for router.push here as it's handled in onSuccess callback
+            // Redirecting happens in the onSuccess handler after both updates
         } catch (err: any) {
             setError(err.message || "An error occurred");
         }
     }
 
-    // Check if mutation is pending
-    const isLoading = updateJobSeekerMutation.status === "pending";
+    // Check if either mutation is pending
+    const isLoading =
+        updateJobSeekerMutation.status === "pending" ||
+        updateUserMutation.status === "pending";
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">

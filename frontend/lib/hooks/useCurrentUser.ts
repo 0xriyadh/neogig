@@ -13,5 +13,6 @@ export const useCurrentUser = () => {
             user?.role === "jobseeker"
                 ? (query?.data as JobSeeker | undefined)
                 : (query?.data as Company | undefined),
+        loading: query.isLoading,
     };
 };
