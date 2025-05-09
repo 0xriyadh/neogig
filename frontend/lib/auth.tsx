@@ -8,7 +8,7 @@ import {
     ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { fetchTrpc } from "./trpc";
+import { fetchTrpc, trpc } from "./trpc";
 import { User } from "@/types/user-types";
 
 // Define the expected response type from the login API call
@@ -31,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    const utils = trpc.useUtils();
 
     useEffect(() => {
         const checkAuthStatus = async () => {
@@ -99,6 +100,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const logout = () => {
+        // Invalidate the user.getMe query
+        utils.user.getMe.invalidate();
         // Clear auth data
         localStorage.removeItem("authToken");
         localStorage.removeItem("userData");
