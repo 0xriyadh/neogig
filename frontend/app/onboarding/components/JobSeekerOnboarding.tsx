@@ -51,7 +51,7 @@ type JobSeekerValues = z.infer<typeof jobSeekerSchema>;
 
 export function JobSeekerOnboarding() {
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState(1);
 
@@ -121,13 +121,26 @@ export function JobSeekerOnboarding() {
         updateJobSeekerMutation.status === "pending" ||
         updateUserMutation.status === "pending";
 
+    const handleLogout = () => {
+        logout();
+    };
+
     return (
         <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
             <Card className="w-full max-w-2xl">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold">
-                        Complete your profile
-                    </CardTitle>
+                    <div className="flex justify-between items-center">
+                        <CardTitle className="text-2xl font-bold">
+                            Complete your profile
+                        </CardTitle>
+                        <Button
+                            variant="outline"
+                            onClick={handleLogout}
+                            size="sm"
+                        >
+                            Logout
+                        </Button>
+                    </div>
                     <CardDescription>
                         Tell us more about yourself to help find the perfect job
                     </CardDescription>

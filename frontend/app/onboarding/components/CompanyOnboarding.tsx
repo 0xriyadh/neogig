@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { fetchTrpc } from "@/lib/trpc";
+import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/lib/auth";
 
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Define the company schema based on backend requirements
 const companySchema = z.object({
+    name: z.string().min(1, { message: "Company name is required" }),
     location: z.string().optional(),
     phone: z.string().optional(),
     industry: z.enum(
@@ -56,14 +57,47 @@ type CompanyValues = z.infer<typeof companySchema>;
 
 export function CompanyOnboarding() {
     const router = useRouter();
-    const { user } = useAuth();
-    const [isLoading, setIsLoading] = useState(false);
+    const { user, logout } = useAuth();
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState(1);
+
+    // User profile update mutation
+    const updateUserMutation = trpc.user.update.useMutation({
+        onError: (err) => {
+            setError(err.message || "Failed to update user profile");
+        },
+    });
+
+    // Company update mutation
+    const updateCompanyMutation = trpc.company.update.useMutation({
+        onSuccess: async () => {
+            if (user?.id) {
+                try {
+                    await updateUserMutation.mutateAsync({
+                        id: user.id,
+                        profileCompleted: true,
+                    });
+                    // Force a full page reload by using window.location
+                    window.location.href = "/dashboard/company";
+                } catch (err) {
+                    console.log(err);
+                }
+            }
+        },
+        onError: (err) => {
+            setError(err.message || "An error occurred");
+        },
+    });
+
+    // Check if either mutation is pending
+    const isLoading =
+        updateCompanyMutation.status === "pending" ||
+        updateUserMutation.status === "pending";
 
     const form = useForm<CompanyValues>({
         resolver: zodResolver(companySchema),
         defaultValues: {
+            name: "",
             location: "",
             phone: "",
             industry: "TECH",
@@ -73,7 +107,6 @@ export function CompanyOnboarding() {
     });
 
     async function onSubmit(data: CompanyValues) {
-        setIsLoading(true);
         setError(null);
 
         try {
@@ -83,28 +116,38 @@ export function CompanyOnboarding() {
                 throw new Error("User not authenticated");
             }
 
-            // Use the fetchTrpc helper to call the create company mutation
-            await fetchTrpc("company.create", {
+            // Use tRPC mutation directly
+            updateCompanyMutation.mutate({
                 userId,
                 ...data,
             });
 
-            // Redirect to the dashboard
-            router.push("/dashboard/company");
+            // Redirecting happens in the onSuccess handler after both updates
         } catch (err: any) {
             setError(err.message || "An error occurred");
-        } finally {
-            setIsLoading(false);
         }
     }
+
+    const handleLogout = () => {
+        logout();
+    };
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
             <Card className="w-full max-w-2xl">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold">
-                        Complete your company profile
-                    </CardTitle>
+                    <div className="flex justify-between items-center">
+                        <CardTitle className="text-2xl font-bold">
+                            Complete your company profile
+                        </CardTitle>
+                        <Button
+                            variant="outline"
+                            onClick={handleLogout}
+                            size="sm"
+                        >
+                            Logout
+                        </Button>
+                    </div>
                     <CardDescription>
                         Tell us more about your company to attract the right
                         talent
@@ -147,6 +190,25 @@ export function CompanyOnboarding() {
                             >
                                 <TabsContent value="step1">
                                     <div className="space-y-4">
+                                        <FormField
+                                            control={form.control}
+                                            name="name"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>
+                                                        Company Name
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            placeholder="Enter your company name"
+                                                            {...field}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
                                         <FormField
                                             control={form.control}
                                             name="location"
@@ -310,6 +372,14 @@ export function CompanyOnboarding() {
                                                 Company Profile Summary
                                             </h3>
                                             <div className="space-y-2 text-sm">
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <span className="text-muted-foreground">
+                                                        Company Name:
+                                                    </span>
+                                                    <span>
+                                                        {form.getValues("name")}
+                                                    </span>
+                                                </div>
                                                 <div className="grid grid-cols-2 gap-2">
                                                     <span className="text-muted-foreground">
                                                         Location:
