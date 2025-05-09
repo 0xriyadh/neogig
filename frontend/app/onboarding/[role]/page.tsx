@@ -7,6 +7,7 @@ import { ProtectedRoute } from "@/components/auth/protected-route";
 import { JobSeekerOnboarding } from "../components/JobSeekerOnboarding";
 import { CompanyOnboarding } from "../components/CompanyOnboarding";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCurrentUser } from "@/lib/hooks/useCurrentUser";
 
 export default function RoleBasedOnboarding({
     params,
@@ -14,16 +15,24 @@ export default function RoleBasedOnboarding({
     params: Promise<{ role: string }>;
 }) {
     const resolvedParams = use(params);
-    const { user, loading: authLoading } = useAuth();
+    const { currentUser, loading: isLoading } = useCurrentUser();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         // Wait until auth is finished loading before making any decisions
-        if (authLoading) return;
+        if (isLoading) return;
+
+        if (currentUser?.profileCompleted) {
+            router.push(
+                currentUser.role === "company"
+                    ? "/dashboard/company"
+                    : "/dashboard/jobseeker"
+            );
+        }
 
         // Verify if the user's role matches the requested onboarding role
-        if (!user) {
+        if (!currentUser) {
             // If no user, redirect to login
             router.push("/auth/login");
             return;
@@ -32,13 +41,14 @@ export default function RoleBasedOnboarding({
         // Check if user role matches the requested onboarding role
         const isValidRole =
             (resolvedParams.role === "jobseeker" &&
-                user.role === "jobseeker") ||
-            (resolvedParams.role === "company" && user.role === "company");
+                currentUser.role === "jobseeker") ||
+            (resolvedParams.role === "company" &&
+                currentUser.role === "company");
 
         if (!isValidRole) {
             // If roles don't match, redirect to the appropriate dashboard
             router.push(
-                user.role === "company"
+                currentUser.role === "company"
                     ? "/dashboard/company"
                     : "/dashboard/jobseeker"
             );
@@ -46,10 +56,10 @@ export default function RoleBasedOnboarding({
         }
 
         setLoading(false);
-    }, [user, resolvedParams.role, router, authLoading]);
+    }, [currentUser, resolvedParams.role, router, isLoading]);
 
     // Loading state while checking roles
-    if (loading || authLoading) {
+    if (loading) {
         return (
             <div className="flex min-h-screen items-center justify-center">
                 <div className="w-full max-w-md space-y-4">
