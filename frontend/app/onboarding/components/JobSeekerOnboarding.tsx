@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { fetchTrpc } from "@/lib/trpc";
+import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/lib/auth";
 
 import { Button } from "@/components/ui/button";
@@ -52,9 +52,18 @@ type JobSeekerValues = z.infer<typeof jobSeekerSchema>;
 export function JobSeekerOnboarding() {
     const router = useRouter();
     const { user } = useAuth();
-    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState(1);
+
+    // Use tRPC mutation hook
+    const updateJobSeekerMutation = trpc.jobSeeker.update.useMutation({
+        onSuccess: () => {
+            router.push("/dashboard/jobseeker");
+        },
+        onError: (err) => {
+            setError(err.message || "An error occurred");
+        },
+    });
 
     const form = useForm<JobSeekerValues>({
         resolver: zodResolver(jobSeekerSchema),
@@ -69,7 +78,6 @@ export function JobSeekerOnboarding() {
     });
 
     async function onSubmit(data: JobSeekerValues) {
-        setIsLoading(true);
         setError(null);
 
         try {
@@ -79,20 +87,20 @@ export function JobSeekerOnboarding() {
                 throw new Error("User not authenticated");
             }
 
-            // Use the fetchTrpc helper to call the create job seeker mutation
-            await fetchTrpc("jobSeeker.create", {
+            // Use tRPC mutation directly
+            updateJobSeekerMutation.mutate({
                 userId,
                 ...data,
             });
 
-            // Redirect to the dashboard
-            router.push("/dashboard/jobseeker");
+            // Note: No need for router.push here as it's handled in onSuccess callback
         } catch (err: any) {
             setError(err.message || "An error occurred");
-        } finally {
-            setIsLoading(false);
         }
     }
+
+    // Check if mutation is pending
+    const isLoading = updateJobSeekerMutation.status === "pending";
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
