@@ -86,3 +86,33 @@ export const deleteJob = async (id: string): Promise<boolean> => {
         .returning({ id: jobs.id });
     return deletedJobs.length > 0;
 };
+
+export class JobService {
+  static async createJob(job: NewJob): Promise<Job> {
+    const [newJob] = await db.insert(jobs).values(job).returning();
+    return newJob;
+  }
+
+  static async getJobs(): Promise<Job[]> {
+    return await db.select().from(jobs).orderBy(jobs.createdAt);
+  }
+
+  static async getJobById(id: string): Promise<Job | undefined> {
+    const [job] = await db.select().from(jobs).where(eq(jobs.id, id));
+    return job;
+  }
+
+  static async updateJob(id: string, job: Partial<NewJob>): Promise<Job | undefined> {
+    const [updatedJob] = await db
+      .update(jobs)
+      .set({ ...job, updatedAt: new Date() })
+      .where(eq(jobs.id, id))
+      .returning();
+    return updatedJob;
+  }
+
+  static async deleteJob(id: string): Promise<Job | undefined> {
+    const [deletedJob] = await db.delete(jobs).where(eq(jobs.id, id)).returning();
+    return deletedJob;
+  }
+}

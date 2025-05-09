@@ -2,7 +2,7 @@ import { db } from "../db";
 import { NewUser, User, users } from "../db/schema/user";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
-import { CreateUserInput, UpdateUserInput } from "../models/user.models";
+import { CreateUserInput, UpdateUserInput, UpdateJobSeekerProfileInput } from "../models/user.models";
 import schema from "../db/schema";
 import { TRPCError } from "@trpc/server";
 
@@ -147,19 +147,57 @@ export const getUserProfileDetails = async (userId: string, role: string) => {
         }
 
         let profileData: any = null;
+        let applications: any[] = [];
+        let savedJobs: any[] = [];
 
         if (role === "jobseeker") {
+            // Get jobseeker profile
             const jobSeekerProfile = await db
                 .select()
                 .from(schema.jobSeekers)
                 .where(eq(schema.jobSeekers.userId, userId))
                 .limit(1);
+
             if (jobSeekerProfile.length > 0) {
                 profileData = jobSeekerProfile[0];
+
+                // Get applications with job details
+                applications = await db
+                    .select({
+                        id: schema.applications.id,
+                        status: schema.applications.status,
+                        appliedAt: schema.applications.appliedAt,
+                        job: {
+                            id: schema.jobs.id,
+                            title: schema.jobs.title,
+                            company: schema.companies.name,
+                        },
+                    })
+                    .from(schema.applications)
+                    .leftJoin(schema.jobs, eq(schema.applications.jobId, schema.jobs.id))
+                    .leftJoin(schema.companies, eq(schema.jobs.companyId, schema.companies.userId))
+                    .where(eq(schema.applications.jobSeekerId, userId))
+                    .orderBy(schema.applications.appliedAt);
+
+                // Get saved jobs with details
+                savedJobs = await db
+                    .select({
+                        id: schema.savedJobs.id,
+                        savedAt: schema.savedJobs.savedAt,
+                        job: {
+                            id: schema.jobs.id,
+                            title: schema.jobs.title,
+                            company: schema.companies.name,
+                            location: schema.jobs.location,
+                        },
+                    })
+                    .from(schema.savedJobs)
+                    .leftJoin(schema.jobs, eq(schema.savedJobs.jobId, schema.jobs.id))
+                    .leftJoin(schema.companies, eq(schema.jobs.companyId, schema.companies.userId))
+                    .where(eq(schema.savedJobs.jobSeekerId, userId))
+                    .orderBy(schema.savedJobs.savedAt);
             } else {
-                console.warn(
-                    `Job seeker profile not found for user ID: ${userId}`
-                );
+                console.warn(`Job seeker profile not found for user ID: ${userId}`);
             }
         } else if (role === "company") {
             const companyProfile = await db
@@ -170,15 +208,15 @@ export const getUserProfileDetails = async (userId: string, role: string) => {
             if (companyProfile.length > 0) {
                 profileData = companyProfile[0];
             } else {
-                console.warn(
-                    `Company profile not found for user ID: ${userId}`
-                );
+                console.warn(`Company profile not found for user ID: ${userId}`);
             }
         }
 
         return {
             ...baseUser[0],
             profile: profileData,
+            applications: role === "jobseeker" ? applications : undefined,
+            savedJobs: role === "jobseeker" ? savedJobs : undefined,
         };
     } catch (error: any) {
         console.error("Error in getUserProfileDetails:", error);
@@ -187,5 +225,60 @@ export const getUserProfileDetails = async (userId: string, role: string) => {
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to fetch user details.",
         });
+    }
+};
+
+export const updateJobSeekerProfile = async (
+    userId: string,
+    profileData: Omit<UpdateJobSeekerProfileInput["profile"], "id">
+) => {
+    try {
+        // Check if jobseeker profile exists
+        const existingProfile = await db
+            .select()
+            .from(schema.jobSeekers)
+            .where(eq(schema.jobSeekers.userId, userId))
+            .limit(1);
+
+        if (existingProfile.length === 0) {
+            // Create new profile if it doesn't exist
+            const newProfile = await db
+                .insert(schema.jobSeekers)
+                .values({
+                    name: profileData.name,
+                    userId,
+                    address: profileData.address,
+                    gender: profileData.gender,
+                    mobile: profileData.mobile,
+                    description: profileData.description,
+                    preferredJobType: profileData.preferredJobType,
+                    availableSchedule: profileData.availableSchedule,
+                    currentlyLookingForJob: profileData.currentlyLookingForJob,
+                })
+                .returning();
+            return newProfile[0];
+        }
+
+        // Update existing profile
+        const updatedProfile = await db
+            .update(schema.jobSeekers)
+            .set({
+                name: profileData.name,
+                address: profileData.address,
+                gender: profileData.gender,
+                mobile: profileData.mobile,
+                description: profileData.description,
+                preferredJobType: profileData.preferredJobType,
+                availableSchedule: profileData.availableSchedule,
+                currentlyLookingForJob: profileData.currentlyLookingForJob,
+                updatedAt: new Date(),
+            })
+            .where(eq(schema.jobSeekers.userId, userId))
+            .returning();
+
+        return updatedProfile[0];
+    } catch (error: any) {
+        console.error("Error updating jobseeker profile:", error);
+        throw new Error(error.message || "Failed to update jobseeker profile");
     }
 };
