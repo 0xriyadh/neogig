@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { fetchTrpc } from "@/lib/trpc";
 import { useAuth } from "@/lib/auth";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
@@ -21,10 +20,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function CompanyDashboard() {
     const router = useRouter();
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
     const [profile, setProfile] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isCreateJobModalOpen, setIsCreateJobModalOpen] = useState(false);
 
     useEffect(() => {
         // Simulating profile fetch
@@ -98,6 +98,14 @@ export default function CompanyDashboard() {
     const handleLogout = () => {
         // Use the logout function from auth context
         logout();
+    };
+
+    // Placeholder for refetching profile data or jobs list
+    const handleJobCreated = () => {
+        console.log("Job created, refresh data here");
+        // Example: could refetch profile or trigger a toast message handled by the form itself
+        // For now, the form itself shows a success toast and closes.
+        // If you need to update the job list on this page, you'd add that logic here.
     };
 
     const dashboardContent = (
@@ -178,8 +186,16 @@ export default function CompanyDashboard() {
                                     Manage your job postings
                                 </CardDescription>
                             </div>
-                            <Button size="sm" asChild>
-                                <Link href="/jobs/create">Post New Job</Link>
+                            <Button
+                                size="sm"
+                                className="cursor-pointer"
+                                onClick={() =>
+                                    router.push(
+                                        `/companies/${user?.id}/jobs/create`
+                                    )
+                                }
+                            >
+                                Post New Job
                             </Button>
                         </CardHeader>
                         <CardContent>
