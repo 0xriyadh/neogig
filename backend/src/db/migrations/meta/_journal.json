@@ -29,6 +29,20 @@
       "when": 1746746852921,
       "tag": "0003_lame_cobalt_man",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1746792765176,
+      "tag": "0004_chief_namorita",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1746797456839,
+      "tag": "0005_sour_loners",
+      "breakpoints": true
     }
   ]
 }
