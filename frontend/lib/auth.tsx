@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
-    
+
     useEffect(() => {
         const checkAuthStatus = async () => {
             try {
@@ -73,7 +73,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.setItem("userData", JSON.stringify(apiUser));
 
             setUser(apiUser);
-            console.log("sdfgsffs", apiUser);
+
+            console.log("apiUserfg", apiUser);
+
+            if (!apiUser.profileCompleted) {
+                if (apiUser.role === "jobseeker") {
+                    router.push("/onboarding/jobseeker");
+                } else if (apiUser.role === "company") {
+                    router.push("/onboarding/company");
+                }
+            }
 
             // Redirect based on user role
             if (apiUser.role === "jobseeker") {

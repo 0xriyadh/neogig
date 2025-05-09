@@ -81,16 +81,25 @@ export class AuthService {
         });
 
         // Generate JWT
-        const token = jwt.sign({ userId: result.userId, role }, JWT_SECRET!, {
-            expiresIn: "1d",
-        });
+        const token = jwt.sign(
+            { userId: result.userId, role, profileCompleted: false },
+            JWT_SECRET!,
+            {
+                expiresIn: "1d",
+            }
+        );
 
         return { userId: result.userId, token };
     }
 
     async login(input: LoginInput): Promise<{
         token: string;
-        user: { id: string; email: string; role: string };
+        user: {
+            id: string;
+            email: string;
+            role: string;
+            profileCompleted?: boolean;
+        };
     }> {
         const { email, password } = input;
 
@@ -118,7 +127,11 @@ export class AuthService {
 
         // Generate JWT
         const token = jwt.sign(
-            { userId: user.id, role: user.role },
+            {
+                userId: user.id,
+                role: user.role,
+                profileCompleted: user.profileCompleted,
+            },
             JWT_SECRET!,
             { expiresIn: "1d" }
         );
@@ -129,6 +142,7 @@ export class AuthService {
                 id: user.id,
                 email: user.email,
                 role: user.role,
+                profileCompleted: user.profileCompleted ?? false,
             },
         };
     }
