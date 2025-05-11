@@ -49,6 +49,12 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
         }
     }
 
+    const { data: applications, isLoading: isApplicationsLoading } =
+        trpc.application.getByJobId.useQuery(
+            { jobId: jobId },
+            { enabled: !!jobId }
+        );
+
     return (
         <Card>
             <CardHeader>
@@ -62,6 +68,11 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
                             id="availability"
                             name="availability"
                             placeholder="When are you available to start? What's your preferred schedule?"
+                            disabled={
+                                isSubmitting ||
+                                isApplicationsLoading ||
+                                applications?.length === 0
+                            }
                             required
                         />
                     </div>
@@ -71,11 +82,28 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
                             id="skills"
                             name="skills"
                             placeholder="List your relevant skills and experience"
+                            disabled={
+                                isSubmitting ||
+                                isApplicationsLoading ||
+                                applications?.length === 0
+                            }
                             required
                         />
                     </div>
-                    <Button type="submit" disabled={isSubmitting}>
+                    <Button
+                        type="submit"
+                        disabled={
+                            isSubmitting ||
+                            isApplicationsLoading ||
+                            applications?.length === 0
+                        }
+                    >
                         {isSubmitting ? "Submitting..." : "Submit Interest"}
+                        {applications && applications?.length > 0 && (
+                            <span className="text-xs text-gray-500">
+                                You have already applied for this job
+                            </span>
+                        )}
                     </Button>
                 </form>
             </CardContent>

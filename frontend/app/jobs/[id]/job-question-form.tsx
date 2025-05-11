@@ -43,6 +43,8 @@ export function JobQuestionForm({ jobId, companyId }: JobQuestionFormProps) {
         jobId,
         question,
       });
+
+      // clear the form
       event.currentTarget.reset();
     } finally {
       setIsSubmitting(false);
