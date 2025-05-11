@@ -38,7 +38,8 @@ export const applicationRouter = router({
                 .where(
                     and(
                         eq(applications.jobId, input.jobId),
-                        eq(applications.jobSeekerId, ctx.user.id)
+                        eq(applications.jobSeekerId, ctx.user.id),
+                        not(eq(applications.status, "WITHDRAWN"))
                     )
                 );
 

@@ -49,10 +49,6 @@ export default function CompanyDashboard() {
             { enabled: !!jobs?.[0]?.id }
         );
 
-    const handleLogout = () => {
-        logout();
-    };
-
     const dashboardContent = (
         <div className="container mx-auto p-6 max-w-5xl">
             <div className="mb-6 flex justify-between items-center">

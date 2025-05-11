@@ -4,7 +4,7 @@ import {
     NewApplication,
     applications,
 } from "../db/schema/application";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, not } from "drizzle-orm";
 import {
     CreateApplicationInput,
     UpdateApplicationInput,
@@ -63,10 +63,13 @@ export const createApplication = async (
         .where(
             and(
                 eq(applications.jobId, appData.jobId),
-                eq(applications.jobSeekerId, appData.jobSeekerId)
+                eq(applications.jobSeekerId, appData.jobSeekerId),
+                not(eq(applications.status, "WITHDRAWN"))
             )
         )
         .limit(1);
+
+    console.log("existing", existing);
 
     if (existing.length > 0) {
         throw new Error("You have already applied for this job");

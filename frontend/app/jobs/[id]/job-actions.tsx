@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
-import { Bookmark, MessageSquare, X } from "lucide-react";
+import { Bookmark, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface JobActionsProps {
@@ -70,6 +70,7 @@ export function JobActions({ jobId }: JobActionsProps) {
             await withdrawInterest.mutateAsync({
                 applicationId: application[0].id,
             });
+            utils.application.getByJobId.invalidate();
         } finally {
             setIsLoading(false);
         }
