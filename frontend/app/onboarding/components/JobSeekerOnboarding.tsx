@@ -77,7 +77,7 @@ export function JobSeekerOnboarding() {
                 }
             }
         },
-        onError: (err) => {
+        onError: (err: any) => {
             setError(err.message || "An error occurred");
         },
     });
