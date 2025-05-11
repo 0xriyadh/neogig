@@ -113,17 +113,10 @@ export function JobFilters() {
     return (
         <Card className="p-4">
             <div className="space-y-6">
-                <div className="space-y-2">
-                    <h3 className="text-lg font-semibold">Filters</h3>
-                    <p className="text-sm text-muted-foreground">
-                        Filter jobs based on your preferences
-                    </p>
-                </div>
-
-                <Separator />
+                <h3 className="text-lg font-semibold">Filters</h3>
 
                 <Button
-                    variant="outline"
+                    variant="warning"
                     className="w-full"
                     onClick={resetFilters}
                 >

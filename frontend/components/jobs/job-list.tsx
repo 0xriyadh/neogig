@@ -184,17 +184,10 @@ export function JobList() {
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {jobs.map((job) => (
-                <div key={job.id} className="relative">
-                    {job.isUrgent && (
-                        <Badge
-                            variant="destructive"
-                            className="absolute top-2 right-2 z-10"
-                        >
-                            Urgent
-                        </Badge>
-                    )}
-                    <JobCard job={job as Job & { company: { name: string } }} />
-                </div>
+                <JobCard
+                    key={job.id}
+                    job={job as Job & { company: { name: string } }}
+                />
             ))}
         </div>
     );
