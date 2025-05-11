@@ -2,7 +2,8 @@ import { db } from "../db";
 import { NewUser, User, users } from "../db/schema/user";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
-import { CreateUserInput, UpdateUserInput, UpdateJobSeekerProfileInput } from "../models/user.models";
+import { CreateUserInput, UpdateUserInput } from "../models/user.models";
+import { UpdateJobSeekerInput } from "../models/jobSeeker.models";
 import schema from "../db/schema";
 import { TRPCError } from "@trpc/server";
 
@@ -174,8 +175,14 @@ export const getUserProfileDetails = async (userId: string, role: string) => {
                         },
                     })
                     .from(schema.applications)
-                    .leftJoin(schema.jobs, eq(schema.applications.jobId, schema.jobs.id))
-                    .leftJoin(schema.companies, eq(schema.jobs.companyId, schema.companies.userId))
+                    .leftJoin(
+                        schema.jobs,
+                        eq(schema.applications.jobId, schema.jobs.id)
+                    )
+                    .leftJoin(
+                        schema.companies,
+                        eq(schema.jobs.companyId, schema.companies.userId)
+                    )
                     .where(eq(schema.applications.jobSeekerId, userId))
                     .orderBy(schema.applications.appliedAt);
 
@@ -192,12 +199,20 @@ export const getUserProfileDetails = async (userId: string, role: string) => {
                         },
                     })
                     .from(schema.savedJobs)
-                    .leftJoin(schema.jobs, eq(schema.savedJobs.jobId, schema.jobs.id))
-                    .leftJoin(schema.companies, eq(schema.jobs.companyId, schema.companies.userId))
+                    .leftJoin(
+                        schema.jobs,
+                        eq(schema.savedJobs.jobId, schema.jobs.id)
+                    )
+                    .leftJoin(
+                        schema.companies,
+                        eq(schema.jobs.companyId, schema.companies.userId)
+                    )
                     .where(eq(schema.savedJobs.jobSeekerId, userId))
                     .orderBy(schema.savedJobs.savedAt);
             } else {
-                console.warn(`Job seeker profile not found for user ID: ${userId}`);
+                console.warn(
+                    `Job seeker profile not found for user ID: ${userId}`
+                );
             }
         } else if (role === "company") {
             const companyProfile = await db
@@ -208,7 +223,9 @@ export const getUserProfileDetails = async (userId: string, role: string) => {
             if (companyProfile.length > 0) {
                 profileData = companyProfile[0];
             } else {
-                console.warn(`Company profile not found for user ID: ${userId}`);
+                console.warn(
+                    `Company profile not found for user ID: ${userId}`
+                );
             }
         }
 
@@ -230,7 +247,7 @@ export const getUserProfileDetails = async (userId: string, role: string) => {
 
 export const updateJobSeekerProfile = async (
     userId: string,
-    profileData: Omit<UpdateJobSeekerProfileInput["profile"], "id">
+    profileData: Omit<UpdateJobSeekerInput, "userId">
 ) => {
     try {
         // Check if jobseeker profile exists
@@ -242,11 +259,17 @@ export const updateJobSeekerProfile = async (
 
         if (existingProfile.length === 0) {
             // Create new profile if it doesn't exist
+            if (!profileData.name) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Name is required to create a job seeker profile.",
+                });
+            }
             const newProfile = await db
                 .insert(schema.jobSeekers)
                 .values({
-                    name: profileData.name,
                     userId,
+                    name: profileData.name,
                     address: profileData.address,
                     gender: profileData.gender,
                     mobile: profileData.mobile,

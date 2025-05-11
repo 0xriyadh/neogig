@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { jobTypeEnum, experienceLevelEnum } from "../db/schema/job";
+import {
+    jobTypeEnum,
+    experienceLevelEnum,
+    jobCategoryEnum,
+} from "../db/schema/job";
 
 // Base response schema
 export const jobResponseSchema = z.object({
@@ -27,6 +31,9 @@ export const createJobInputSchema = z
         description: z
             .string()
             .min(1, { message: "Job description is required" }),
+        jobCategory: z.enum(jobCategoryEnum.enumValues, {
+            errorMap: () => ({ message: "Invalid job category" }),
+        }),
         location: z.string().optional(),
         salaryMin: z.number().int().positive().optional(),
         salaryMax: z.number().int().positive().optional(),
