@@ -54,6 +54,7 @@ export function JobSeekerOnboarding() {
     const { user, logout } = useAuth();
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState(1);
+    const utils = trpc.useUtils();
 
     // User profile update mutation
     const updateUserMutation = trpc.user.update.useMutation({
@@ -71,6 +72,8 @@ export function JobSeekerOnboarding() {
                         id: user.id,
                         profileCompleted: true,
                     });
+
+                    await utils.user.getMe.invalidate();
                     router.push("/dashboard/jobseeker");
                 } catch (err) {
                     console.log(err);

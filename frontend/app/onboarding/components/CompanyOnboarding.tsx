@@ -60,6 +60,7 @@ export function CompanyOnboarding() {
     const { user, logout } = useAuth();
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState(1);
+    const utils = trpc.useUtils();
 
     // User profile update mutation
     const updateUserMutation = trpc.user.update.useMutation({
@@ -77,8 +78,9 @@ export function CompanyOnboarding() {
                         id: user.id,
                         profileCompleted: true,
                     });
-                    // Force a full page reload by using window.location
-                    window.location.href = "/dashboard/company";
+
+                    await utils.user.getMe.invalidate();
+                    router.push("/dashboard/company");
                 } catch (err) {
                     console.log(err);
                 }
