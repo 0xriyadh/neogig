@@ -28,19 +28,6 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { jobContractTypeEnum, jobTypeEnum } from "@/lib/enums";
 
-const jobTypes = [
-    { id: "full-time", label: "Full Time" },
-    { id: "part-time", label: "Part Time" },
-    { id: "contract", label: "Contract" },
-    { id: "freelance", label: "Freelance" },
-];
-
-const workTypes = [
-    { id: "REMOTE", label: "Remote" },
-    { id: "ONSITE", label: "On-site" },
-    { id: "HYBRID", label: "Hybrid" },
-];
-
 const experienceLevels = [
     { id: "entry", label: "Entry Level" },
     { id: "mid", label: "Mid Level" },

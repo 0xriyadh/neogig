@@ -1,4 +1,4 @@
-export type WorkType = "REMOTE" | "ONSITE" | "HYBRID";
+export type JobType = "REMOTE" | "ONSITE" | "HYBRID";
 export type ExperienceLevel = "entry" | "mid" | "senior" | "lead";
 export type JobContractType = "PART_TIME" | "CONTRACT";
 export interface Job {
@@ -9,7 +9,7 @@ export interface Job {
     location?: string;
     salaryMin?: number;
     salaryMax?: number;
-    jobType?: WorkType;
+    jobType?: JobType;
     jobContractType: JobContractType;
     experienceLevel?: ExperienceLevel;
     requiredSkills?: string[] | string;

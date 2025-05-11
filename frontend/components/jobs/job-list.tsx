@@ -75,16 +75,18 @@ export function JobList() {
             );
 
             return dataWithCompany.filter((job) => {
-                if (
-                    selectedJobTypes.length > 0 &&
-                    !selectedJobTypes.includes(
-                        job.jobContractType?.toLowerCase() ?? ""
-                    )
-                ) {
-                    return false;
+                if (selectedJobTypes.length > 0) {
+                    console.log("selectedJobTypes", selectedJobTypes);
+                    console.log("selectedJobTypes job.jobType", job.jobType);
+                    console.log(
+                        "selectedJobTypes job.jobType.toLowerCase()",
+                        job.jobType?.toLowerCase()
+                    );
+                    if (!selectedJobTypes.includes(job.jobType ?? "")) {
+                        return false;
+                    }
                 }
 
-                // Experience level filter
                 if (
                     experienceLevel &&
                     job?.experienceLevel?.toLowerCase() !==
