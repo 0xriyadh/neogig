@@ -23,14 +23,14 @@ import { toast } from "sonner";
 import { useCurrentUser } from "@/lib/hooks/useCurrentUser";
 import { JobSeeker, JobApplication, SavedJob } from "@/types/user-types";
 
-
 export default function JobSeekerDashboard() {
     const router = useRouter();
     const { logout } = useAuth();
     const { currentUser, isLoading, error } = useCurrentUser();
 
     // Type guard to ensure we're working with a JobSeeker
-    const jobSeeker = currentUser?.role === "jobseeker" ? currentUser as JobSeeker : null;
+    const jobSeeker =
+        currentUser?.role === "jobseeker" ? (currentUser as JobSeeker) : null;
 
     const handleLogout = () => {
         logout();
@@ -41,9 +41,6 @@ export default function JobSeekerDashboard() {
         <div className="container mx-auto p-6 max-w-5xl">
             <div className="mb-6 flex justify-between items-center">
                 <h1 className="text-3xl font-bold">Job Seeker Dashboard</h1>
-                <Button variant="outline" onClick={handleLogout}>
-                    Logout
-                </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -52,7 +49,10 @@ export default function JobSeekerDashboard() {
                     <CardHeader>
                         <div className="flex items-center gap-4">
                             <Avatar className="h-16 w-16">
-                                <AvatarImage src="" alt={jobSeeker?.profile?.name} />
+                                <AvatarImage
+                                    src=""
+                                    alt={jobSeeker?.profile?.name}
+                                />
                                 <AvatarFallback>
                                     {jobSeeker?.profile?.name
                                         ?.split(" ")
@@ -61,7 +61,9 @@ export default function JobSeekerDashboard() {
                                 </AvatarFallback>
                             </Avatar>
                             <div>
-                                <CardTitle>{jobSeeker?.profile?.name}</CardTitle>
+                                <CardTitle>
+                                    {jobSeeker?.profile?.name}
+                                </CardTitle>
                                 <CardDescription>
                                     {currentUser?.email}
                                 </CardDescription>
@@ -102,41 +104,49 @@ export default function JobSeekerDashboard() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {jobSeeker?.applications && jobSeeker.applications.length > 0 ? (
+                            {jobSeeker?.applications &&
+                            jobSeeker.applications.length > 0 ? (
                                 <div className="space-y-4">
-                                    {jobSeeker.applications.map((app: JobApplication) => (
-                                        <div
-                                            key={app.id}
-                                            className="flex justify-between items-center border-b pb-3"
-                                        >
-                                            <div>
-                                                <h3 className="font-medium">
-                                                    {app.job.title}
-                                                </h3>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {app.job.company}
-                                                </p>
+                                    {jobSeeker.applications.map(
+                                        (app: JobApplication) => (
+                                            <div
+                                                key={app.id}
+                                                className="flex justify-between items-center border-b pb-3"
+                                            >
+                                                <div>
+                                                    <h3 className="font-medium">
+                                                        {app.job.title}
+                                                    </h3>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {app.job.company}
+                                                    </p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span
+                                                        className={`inline-block px-2 py-1 text-xs rounded-full ${
+                                                            app.status ===
+                                                            "PENDING"
+                                                                ? "bg-blue-100 text-blue-800"
+                                                                : app.status ===
+                                                                  "INTERVIEWING"
+                                                                ? "bg-amber-100 text-amber-800"
+                                                                : app.status ===
+                                                                  "OFFERED"
+                                                                ? "bg-green-100 text-green-800"
+                                                                : "bg-red-100 text-red-800"
+                                                        }`}
+                                                    >
+                                                        {app.status}
+                                                    </span>
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        {new Date(
+                                                            app.appliedAt
+                                                        ).toLocaleDateString()}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div className="text-right">
-                                                <span
-                                                    className={`inline-block px-2 py-1 text-xs rounded-full ${
-                                                        app.status === "PENDING"
-                                                            ? "bg-blue-100 text-blue-800"
-                                                            : app.status === "INTERVIEWING"
-                                                            ? "bg-amber-100 text-amber-800"
-                                                            : app.status === "OFFERED"
-                                                            ? "bg-green-100 text-green-800"
-                                                            : "bg-red-100 text-red-800"
-                                                    }`}
-                                                >
-                                                    {app.status}
-                                                </span>
-                                                <p className="text-xs text-muted-foreground mt-1">
-                                                    {new Date(app.appliedAt).toLocaleDateString()}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        )
+                                    )}
                                 </div>
                             ) : (
                                 <p className="text-center py-4 text-muted-foreground">
@@ -164,40 +174,43 @@ export default function JobSeekerDashboard() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {jobSeeker?.savedJobs && jobSeeker.savedJobs.length > 0 ? (
+                            {jobSeeker?.savedJobs &&
+                            jobSeeker.savedJobs.length > 0 ? (
                                 <div className="space-y-4">
-                                    {jobSeeker.savedJobs.map((savedJob: SavedJob) => (
-                                        <div
-                                            key={savedJob.id}
-                                            className="flex justify-between items-center border-b pb-3"
-                                        >
-                                            <div>
-                                                <h3 className="font-medium">
-                                                    {savedJob.job.title}
-                                                </h3>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {savedJob.job.company}
-                                                </p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-sm">
-                                                    {savedJob.job.location}
-                                                </p>
-                                                <Button
-                                                    size="sm"
-                                                    variant="link"
-                                                    className="h-auto p-0"
-                                                    asChild
-                                                >
-                                                    <Link
-                                                        href={`/jobs/${savedJob.job.id}`}
+                                    {jobSeeker.savedJobs.map(
+                                        (savedJob: SavedJob) => (
+                                            <div
+                                                key={savedJob.id}
+                                                className="flex justify-between items-center border-b pb-3"
+                                            >
+                                                <div>
+                                                    <h3 className="font-medium">
+                                                        {savedJob.job.title}
+                                                    </h3>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {savedJob.job.company}
+                                                    </p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-sm">
+                                                        {savedJob.job.location}
+                                                    </p>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="link"
+                                                        className="h-auto p-0"
+                                                        asChild
                                                     >
-                                                        View Job
-                                                    </Link>
-                                                </Button>
+                                                        <Link
+                                                            href={`/jobs/${savedJob.job.id}`}
+                                                        >
+                                                            View Job
+                                                        </Link>
+                                                    </Button>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        )
+                                    )}
                                 </div>
                             ) : (
                                 <p className="text-center py-4 text-muted-foreground">
@@ -231,7 +244,9 @@ export default function JobSeekerDashboard() {
             <div className="container mx-auto p-6 max-w-5xl text-center">
                 <h2 className="text-2xl font-bold mb-4">Error</h2>
                 <p className="text-muted-foreground mb-6">
-                    {error instanceof Error ? error.message : "Failed to load profile"}
+                    {error instanceof Error
+                        ? error.message
+                        : "Failed to load profile"}
                 </p>
                 <Button variant="link" asChild className="mt-4">
                     <Link href="/auth/login">Back to Login</Link>

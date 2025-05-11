@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { AuthLayout } from "@/components/auth/auth-layout";
+import Link from "next/link";
 
 const loginSchema = z.object({
     email: z.string().email({ message: "Please enter a valid email address" }),
@@ -79,7 +80,12 @@ export default function LoginPage() {
                     <CardTitle className="text-2xl font-bold">
                         Welcome back
                     </CardTitle>
-                    <CardDescription>Sign in to your account</CardDescription>
+                    <CardDescription>
+                        Sign in to your account or{" "}
+                        <Link href="/auth/signup" className="text-white">
+                            Create an account
+                        </Link>
+                    </CardDescription>
                 </CardHeader>
                 <CardContent className="px-0">
                     <Form {...form}>

@@ -117,12 +117,14 @@ export default function SignupPage() {
                                 onClick={() =>
                                     form.setValue("role", "jobseeker")
                                 }
+                                className="cursor-pointer"
                             >
                                 Job Seeker
                             </TabsTrigger>
                             <TabsTrigger
                                 value="company"
                                 onClick={() => form.setValue("role", "company")}
+                                className="cursor-pointer"
                             >
                                 Company
                             </TabsTrigger>

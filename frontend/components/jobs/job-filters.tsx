@@ -127,7 +127,7 @@ export function JobFilters() {
   const resetFilters = useCallback(() => {
     setSelectedJobTypes([]);
     setExperienceLevel('');
-    setSalaryRange({ min: 0, max: 200 });
+    setSalaryRange({ min: 0, max: 2000000 });
     setLocation('');
     setWorkType('');
     setSelectedSkills([]);
