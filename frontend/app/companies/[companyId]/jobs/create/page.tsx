@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -17,7 +17,11 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { jobTypeEnum, experienceLevelEnum } from "@/lib/enums";
+import {
+    jobTypeEnum,
+    experienceLevelEnum,
+    jobContractTypeEnum,
+} from "@/lib/enums";
 import { useRouter } from "next/navigation";
 import {
     Form,
@@ -29,8 +33,18 @@ import {
     FormDescription,
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+} from "@/components/ui/command";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -48,35 +62,47 @@ const commonSkills = [
 ];
 
 // Define the Zod schema based on NewJob and backend validation
-const createJobFormSchema = z.object({
-    title: z.string().min(3, "Title must be at least 3 characters"),
-    description: z.string().min(10, "Description must be at least 10 characters"),
-    location: z.string().optional(),
-    salaryMin: z.coerce.number().int().positive().optional(),
-    salaryMax: z.coerce.number().int().positive().optional(),
-    jobType: z.enum(jobTypeEnum.enumValues).optional(),
-    jobCategory: z.enum(["FULL_TIME", "PART_TIME", "CONTRACT", "FREELANCE"]),
-    experienceLevel: z.enum(experienceLevelEnum.enumValues).optional(),
-    minimumWeeklyHourCommitment: z.coerce.number().int().positive().optional(),
-    requiredSkills: z.array(z.string()).optional(),
-    isUrgent: z.boolean(),
-    companyId: z.string().uuid("Invalid company ID"),
-}).refine(
-    (data) => !data.salaryMin || !data.salaryMax || data.salaryMax >= data.salaryMin,
-    {
-        message: "Maximum salary must be greater than or equal to minimum salary",
-        path: ["salaryMax"],
-    }
-);
+const createJobFormSchema = z
+    .object({
+        title: z.string().min(3, "Title must be at least 3 characters"),
+        description: z
+            .string()
+            .min(10, "Description must be at least 10 characters"),
+        location: z.string().optional(),
+        salaryMin: z.coerce.number().int().positive().optional(),
+        salaryMax: z.coerce.number().int().positive().optional(),
+        jobType: z.enum(jobTypeEnum).optional(),
+        jobContractType: z.enum(jobContractTypeEnum),
+        experienceLevel: z.enum(experienceLevelEnum).optional(),
+        minimumWeeklyHourCommitment: z.coerce
+            .number()
+            .int()
+            .positive()
+            .optional(),
+        requiredSkills: z.array(z.string()).optional(),
+        isUrgent: z.boolean(),
+        companyId: z.string().uuid("Invalid company ID"),
+    })
+    .refine(
+        (data) =>
+            !data.salaryMin ||
+            !data.salaryMax ||
+            data.salaryMax >= data.salaryMin,
+        {
+            message:
+                "Maximum salary must be greater than or equal to minimum salary",
+            path: ["salaryMax"],
+        }
+    );
 
 type CreateJobFormValues = z.infer<typeof createJobFormSchema>;
 
 interface CreateJobPageProps {
-    params: { companyId: string };
+    params: Promise<{ companyId: string }>;
 }
 
 export default function CreateJobPage({ params }: CreateJobPageProps) {
-    const { companyId } = params;
+    const { companyId } = use(params);
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [openSkills, setOpenSkills] = useState(false);
@@ -90,7 +116,7 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
             salaryMin: undefined,
             salaryMax: undefined,
             jobType: undefined,
-            jobCategory: "FULL_TIME",
+            jobContractType: "FULL_TIME",
             experienceLevel: undefined,
             minimumWeeklyHourCommitment: undefined,
             requiredSkills: [],
@@ -130,12 +156,16 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
             <div className="space-y-2 mb-6">
                 <h1 className="text-3xl font-bold">Post a New Job</h1>
                 <p className="text-muted-foreground">
-                    Fill in the details below to publish a new job listing for your company.
+                    Fill in the details below to publish a new job listing for
+                    your company.
                 </p>
             </div>
 
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-6 border rounded-lg shadow-sm bg-card">
+                <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="space-y-6 p-6 border rounded-lg shadow-sm bg-card"
+                >
                     <FormField
                         control={form.control}
                         name="title"
@@ -143,7 +173,10 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
                             <FormItem>
                                 <FormLabel>Job Title</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="e.g., Software Engineer" {...field} />
+                                    <Input
+                                        placeholder="e.g., Software Engineer"
+                                        {...field}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -175,7 +208,10 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
                             <FormItem>
                                 <FormLabel>Location</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="e.g., San Francisco, CA or Remote" {...field} />
+                                    <Input
+                                        placeholder="e.g., San Francisco, CA or Remote"
+                                        {...field}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -188,9 +224,15 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
                             name="salaryMin"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Minimum Salary (Optional)</FormLabel>
+                                    <FormLabel>
+                                        Minimum Salary (Optional)
+                                    </FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="e.g., 70000" {...field} />
+                                        <Input
+                                            type="number"
+                                            placeholder="e.g., 70000"
+                                            {...field}
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -202,9 +244,15 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
                             name="salaryMax"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Maximum Salary (Optional)</FormLabel>
+                                    <FormLabel>
+                                        Maximum Salary (Optional)
+                                    </FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="e.g., 100000" {...field} />
+                                        <Input
+                                            type="number"
+                                            placeholder="e.g., 100000"
+                                            {...field}
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -215,21 +263,28 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField
                             control={form.control}
-                            name="jobCategory"
+                            name="jobContractType"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Job Category</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormLabel>Job Contract Type</FormLabel>
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                    >
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select job category" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="FULL_TIME">Full Time</SelectItem>
-                                            <SelectItem value="PART_TIME">Part Time</SelectItem>
-                                            <SelectItem value="CONTRACT">Contract</SelectItem>
-                                            <SelectItem value="FREELANCE">Freelance</SelectItem>
+                                            {jobContractTypeEnum.map((type) => (
+                                                <SelectItem
+                                                    key={type}
+                                                    value={type}
+                                                >
+                                                    {type}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
@@ -243,15 +298,21 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Work Type (Optional)</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                    >
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select work type" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {jobTypeEnum.enumValues.map((type) => (
-                                                <SelectItem key={type} value={type}>
+                                            {jobTypeEnum.map((type) => (
+                                                <SelectItem
+                                                    key={type}
+                                                    value={type}
+                                                >
                                                     {type}
                                                 </SelectItem>
                                             ))}
@@ -268,16 +329,24 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
                         name="experienceLevel"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Experience Level (Optional)</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormLabel>
+                                    Experience Level (Optional)
+                                </FormLabel>
+                                <Select
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                >
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select experience level" />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {experienceLevelEnum.enumValues.map((level) => (
-                                            <SelectItem key={level} value={level}>
+                                        {experienceLevelEnum.map((level) => (
+                                            <SelectItem
+                                                key={level}
+                                                value={level}
+                                            >
                                                 {level}
                                             </SelectItem>
                                         ))}
@@ -293,9 +362,15 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
                         name="minimumWeeklyHourCommitment"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Minimum Weekly Hours (Optional)</FormLabel>
+                                <FormLabel>
+                                    Minimum Weekly Hours (Optional)
+                                </FormLabel>
                                 <FormControl>
-                                    <Input type="number" placeholder="e.g., 20" {...field} />
+                                    <Input
+                                        type="number"
+                                        placeholder="e.g., 20"
+                                        {...field}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -308,7 +383,10 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Required Skills</FormLabel>
-                                <Popover open={openSkills} onOpenChange={setOpenSkills}>
+                                <Popover
+                                    open={openSkills}
+                                    onOpenChange={setOpenSkills}
+                                >
                                     <PopoverTrigger asChild>
                                         <FormControl>
                                             <Button
@@ -327,23 +405,41 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
                                     <PopoverContent className="w-full p-0">
                                         <Command>
                                             <CommandInput placeholder="Search skills..." />
-                                            <CommandEmpty>No skills found.</CommandEmpty>
+                                            <CommandEmpty>
+                                                No skills found.
+                                            </CommandEmpty>
                                             <CommandGroup>
                                                 {commonSkills.map((skill) => (
                                                     <CommandItem
                                                         key={skill}
                                                         onSelect={() => {
-                                                            const currentSkills = field.value ?? [];
-                                                            const newSkills = currentSkills.includes(skill)
-                                                                ? currentSkills.filter((s) => s !== skill)
-                                                                : [...currentSkills, skill];
-                                                            field.onChange(newSkills);
+                                                            const currentSkills =
+                                                                field.value ??
+                                                                [];
+                                                            const newSkills =
+                                                                currentSkills.includes(
+                                                                    skill
+                                                                )
+                                                                    ? currentSkills.filter(
+                                                                          (s) =>
+                                                                              s !==
+                                                                              skill
+                                                                      )
+                                                                    : [
+                                                                          ...currentSkills,
+                                                                          skill,
+                                                                      ];
+                                                            field.onChange(
+                                                                newSkills
+                                                            );
                                                         }}
                                                     >
                                                         <Check
                                                             className={cn(
                                                                 "mr-2 h-4 w-4",
-                                                                field.value?.includes(skill)
+                                                                field.value?.includes(
+                                                                    skill
+                                                                )
                                                                     ? "opacity-100"
                                                                     : "opacity-0"
                                                             )}
@@ -363,7 +459,9 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
                                                 className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-sm cursor-pointer"
                                                 onClick={() => {
                                                     field.onChange(
-                                                        field.value?.filter((s) => s !== skill) ?? []
+                                                        field.value?.filter(
+                                                            (s) => s !== skill
+                                                        ) ?? []
                                                     );
                                                 }}
                                             >
@@ -383,9 +481,12 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
                         render={({ field }) => (
                             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                                 <div className="space-y-0.5">
-                                    <FormLabel className="text-base">Urgent Hiring</FormLabel>
+                                    <FormLabel className="text-base">
+                                        Urgent Hiring
+                                    </FormLabel>
                                     <FormDescription>
-                                        Mark this job as urgent to highlight it in search results
+                                        Mark this job as urgent to highlight it
+                                        in search results
                                     </FormDescription>
                                 </div>
                                 <FormControl>
@@ -418,9 +519,3 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
         </main>
     );
 }
-
-// Ensure you have a way to share/define these enums, e.g., in @/lib/enums.ts
-// For example:
-// export const jobTypeEnum = { name: "job_type", enumValues: ["REMOTE", "ONSITE", "HYBRID"] as const };
-// export const experienceLevelEnum = { name: "experience_level", enumValues: ["ENTRY", "MID", "SENIOR", "LEAD"] as const };
-// The above lines are for informational purposes and should be in @/lib/enums.ts

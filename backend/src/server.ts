@@ -17,7 +17,7 @@ const port = process.env.PORT || 8000;
 // Enable CORS for frontend requests
 app.use(
     cors({
-        origin: "http://localhost:9000", // The port your frontend is running on
+        origin: true, // The port your frontend is running on
         credentials: true,
     })
 );
