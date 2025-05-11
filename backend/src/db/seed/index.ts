@@ -94,7 +94,7 @@ async function seed() {
         salaryMin: faker.number.int({ min: 30000, max: 60000 }),
         salaryMax: faker.number.int({ min: 60000, max: 150000 }),
         jobType: faker.helpers.arrayElement(["REMOTE", "ONSITE", "HYBRID"]),
-        jobCategory: faker.helpers.arrayElement(["FULL_TIME", "PART_TIME", "CONTRACT", "FREELANCE"]),
+        jobContractType: faker.helpers.arrayElement(["PART_TIME", "CONTRACT"]),
         experienceLevel: faker.helpers.arrayElement(["ENTRY", "MID", "SENIOR", "LEAD"]),
         minimumWeeklyHourCommitment: faker.number.int({ min: 20, max: 40 }),
         requiredSkills: Array.from({ length: faker.number.int({ min: 3, max: 8 }) }, () => 

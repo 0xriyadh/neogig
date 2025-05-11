@@ -116,7 +116,7 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
             salaryMin: undefined,
             salaryMax: undefined,
             jobType: undefined,
-            jobContractType: "FULL_TIME",
+            jobContractType: "PART_TIME",
             experienceLevel: undefined,
             minimumWeeklyHourCommitment: undefined,
             requiredSkills: [],
@@ -138,7 +138,7 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
 
             await fetchTrpc("job.create", payload);
 
-            toast.success("Job posting created successfully.");
+            toast.success("Job posting submitted successfully.");
             form.reset();
             router.push(`/dashboard/company`);
         } catch (error: any) {
@@ -273,7 +273,7 @@ export default function CreateJobPage({ params }: CreateJobPageProps) {
                                     >
                                         <FormControl>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select job category" />
+                                                <SelectValue placeholder="Select job contract type" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>

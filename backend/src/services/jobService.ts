@@ -2,6 +2,7 @@ import { db } from "../db";
 import { Job, NewJob, jobs } from "../db/schema/job";
 import { eq, desc, asc } from "drizzle-orm"; // Import ordering functions if needed
 import { CreateJobInput, UpdateJobInput } from "../models/job.models";
+import { companies } from "../db/schema/company";
 
 // Service to get all jobs (consider pagination and filtering later)
 export const getAllJobs = async (): Promise<Job[]> => {
@@ -27,15 +28,18 @@ export const getJobsByCompanyId = async (companyId: string): Promise<Job[]> => {
 // Service to create a new job
 export const createJob = async (jobData: CreateJobInput): Promise<Job> => {
     // Optional: Check if the companyId exists in the companies table
-    // const companyExists = await db.select().from(companies).where(eq(companies.userId, jobData.companyId)).limit(1);
-    // if (companyExists.length === 0) {
-    //     throw new Error('Company posting this job does not exist');
-    // }
+    const companyExists = await db
+        .select()
+        .from(companies)
+        .where(eq(companies.userId, jobData.companyId))
+        .limit(1);
+    if (companyExists.length === 0) {
+        throw new Error("Company posting this job does not exist");
+    }
 
     const newJob: NewJob = {
         ...jobData,
-        jobContractType: jobData.jobCategory, // Map jobCategory to jobContractType
-        // Ensure defaults or nulls are handled for optional fields if necessary
+        jobContractType: jobData.jobContractType,
     };
 
     const insertedJob = await db.insert(jobs).values(newJob).returning();

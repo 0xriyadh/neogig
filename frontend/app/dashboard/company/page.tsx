@@ -24,34 +24,44 @@ export default function CompanyDashboard() {
     const router = useRouter();
 
     const { data: user } = trpc.user.getMe.useQuery();
-
+    const { logout } = useAuth();
     // Fetch company profile
-    const { data: profile, isLoading: isProfileLoading, error: profileError } = trpc.company.getById.useQuery(
+    const {
+        data: profile,
+        isLoading: isProfileLoading,
+        error: profileError,
+    } = trpc.company.getById.useQuery(
         { userId: user?.id || "" },
         { enabled: !!user?.id }
     );
 
     // Fetch company's jobs
-    const { data: jobs, isLoading: isJobsLoading } = trpc.job.getByCompanyId.useQuery(
-        { userId: user?.id || "" },
-        { enabled: !!user?.id }
-    );
+    const { data: jobs, isLoading: isJobsLoading } =
+        trpc.job.getByCompanyId.useQuery(
+            { userId: user?.id || "" },
+            { enabled: !!user?.id }
+        );
 
     // Fetch applications for all jobs
-    const { data: applications, isLoading: isApplicationsLoading } = trpc.application.getByJobId.useQuery(
-        { jobId: jobs?.[0]?.id || "" },
-        { enabled: !!jobs?.[0]?.id }
-    );
+    const { data: applications, isLoading: isApplicationsLoading } =
+        trpc.application.getByJobId.useQuery(
+            { jobId: jobs?.[0]?.id || "" },
+            { enabled: !!jobs?.[0]?.id }
+        );
 
     const handleLogout = () => {
-        // logout();
+        logout();
     };
 
     const dashboardContent = (
         <div className="container mx-auto p-6 max-w-5xl">
             <div className="mb-6 flex justify-between items-center">
                 <h1 className="text-3xl font-bold">Company Dashboard</h1>
-                <Button variant="outline" onClick={handleLogout}>
+                <Button
+                    variant="outline"
+                    onClick={handleLogout}
+                    className="cursor-pointer"
+                >
                     Logout
                 </Button>
             </div>
@@ -140,7 +150,8 @@ export default function CompanyDashboard() {
                                                     {job.title}
                                                 </h3>
                                                 <p className="text-sm text-muted-foreground">
-                                                    {applications?.length || 0} applicants
+                                                    {applications?.length || 0}{" "}
+                                                    applicants
                                                 </p>
                                             </div>
                                             <div className="text-right">
@@ -151,10 +162,15 @@ export default function CompanyDashboard() {
                                                             : "bg-gray-100 text-gray-800"
                                                     }`}
                                                 >
-                                                    {job.isActive ? "Active" : "Draft"}
+                                                    {job.isActive
+                                                        ? "Active"
+                                                        : "Draft"}
                                                 </span>
                                                 <p className="text-xs text-muted-foreground mt-1">
-                                                    Posted: {new Date(job.createdAt).toLocaleDateString()}
+                                                    Posted:{" "}
+                                                    {new Date(
+                                                        job.createdAt
+                                                    ).toLocaleDateString()}
                                                 </p>
                                             </div>
                                         </div>
@@ -208,7 +224,9 @@ export default function CompanyDashboard() {
                             {applications && applications.length > 0 ? (
                                 <div className="space-y-4">
                                     {applications.map((application) => {
-                                        const job = jobs?.find(j => j.id === application.jobId);
+                                        const job = jobs?.find(
+                                            (j) => j.id === application.jobId
+                                        );
                                         return (
                                             <div
                                                 key={application.id}
@@ -224,7 +242,9 @@ export default function CompanyDashboard() {
                                                     </Avatar>
                                                     <div>
                                                         <h3 className="font-medium">
-                                                            {application.jobSeekerId}
+                                                            {
+                                                                application.jobSeekerId
+                                                            }
                                                         </h3>
                                                         <p className="text-sm text-muted-foreground">
                                                             {job?.title}
@@ -234,11 +254,14 @@ export default function CompanyDashboard() {
                                                 <div className="text-right">
                                                     <span
                                                         className={`inline-block px-2 py-1 text-xs rounded-full ${
-                                                            application.status === "PENDING"
+                                                            application.status ===
+                                                            "PENDING"
                                                                 ? "bg-blue-100 text-blue-800"
-                                                                : application.status === "REVIEWED"
+                                                                : application.status ===
+                                                                  "REVIEWED"
                                                                 ? "bg-purple-100 text-purple-800"
-                                                                : application.status === "INTERVIEWING"
+                                                                : application.status ===
+                                                                  "INTERVIEWING"
                                                                 ? "bg-amber-100 text-amber-800"
                                                                 : "bg-green-100 text-green-800"
                                                         }`}
@@ -304,7 +327,9 @@ export default function CompanyDashboard() {
         return (
             <div className="container mx-auto p-6 max-w-5xl text-center">
                 <h2 className="text-2xl font-bold mb-4">Error</h2>
-                <p className="text-muted-foreground mb-6">{profileError.message}</p>
+                <p className="text-muted-foreground mb-6">
+                    {profileError.message}
+                </p>
                 <Button variant="link" asChild className="mt-4">
                     <Link href="/auth/login">Back to Login</Link>
                 </Button>
