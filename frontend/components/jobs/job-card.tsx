@@ -22,7 +22,7 @@ export function JobCard({ job }: JobCardProps) {
             <CardTitle className="text-xl">{job.title}</CardTitle>
             <CardDescription className="mt-1">{job.company.name}</CardDescription>
           </div>
-          <Badge variant="secondary">{job.type}</Badge>
+          <Badge variant="secondary">{job.jobContractType}</Badge>
         </div>
       </CardHeader>
       <CardContent>
