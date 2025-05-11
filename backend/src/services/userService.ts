@@ -1,8 +1,12 @@
 import { db } from "../db";
 import { NewUser, User, users } from "../db/schema/user";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
-import { CreateUserInput, UpdateUserInput, UpdateJobSeekerProfileInput } from "../models/user.models";
+import {
+    CreateUserInput,
+    UpdateUserInput,
+    UpdateJobSeekerProfileInput,
+} from "../models/user.models";
 import schema from "../db/schema";
 import { TRPCError } from "@trpc/server";
 
@@ -174,10 +178,16 @@ export const getUserProfileDetails = async (userId: string, role: string) => {
                         },
                     })
                     .from(schema.applications)
-                    .leftJoin(schema.jobs, eq(schema.applications.jobId, schema.jobs.id))
-                    .leftJoin(schema.companies, eq(schema.jobs.companyId, schema.companies.userId))
+                    .leftJoin(
+                        schema.jobs,
+                        eq(schema.applications.jobId, schema.jobs.id)
+                    )
+                    .leftJoin(
+                        schema.companies,
+                        eq(schema.jobs.companyId, schema.companies.userId)
+                    )
                     .where(eq(schema.applications.jobSeekerId, userId))
-                    .orderBy(schema.applications.appliedAt);
+                    .orderBy(desc(schema.applications.appliedAt));
 
                 // Get saved jobs with details
                 savedJobs = await db
@@ -192,12 +202,20 @@ export const getUserProfileDetails = async (userId: string, role: string) => {
                         },
                     })
                     .from(schema.savedJobs)
-                    .leftJoin(schema.jobs, eq(schema.savedJobs.jobId, schema.jobs.id))
-                    .leftJoin(schema.companies, eq(schema.jobs.companyId, schema.companies.userId))
+                    .leftJoin(
+                        schema.jobs,
+                        eq(schema.savedJobs.jobId, schema.jobs.id)
+                    )
+                    .leftJoin(
+                        schema.companies,
+                        eq(schema.jobs.companyId, schema.companies.userId)
+                    )
                     .where(eq(schema.savedJobs.jobSeekerId, userId))
                     .orderBy(schema.savedJobs.savedAt);
             } else {
-                console.warn(`Job seeker profile not found for user ID: ${userId}`);
+                console.warn(
+                    `Job seeker profile not found for user ID: ${userId}`
+                );
             }
         } else if (role === "company") {
             const companyProfile = await db
@@ -208,7 +226,9 @@ export const getUserProfileDetails = async (userId: string, role: string) => {
             if (companyProfile.length > 0) {
                 profileData = companyProfile[0];
             } else {
-                console.warn(`Company profile not found for user ID: ${userId}`);
+                console.warn(
+                    `Company profile not found for user ID: ${userId}`
+                );
             }
         }
 

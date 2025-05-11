@@ -32,7 +32,8 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
         event.preventDefault();
         setIsSubmitting(true);
 
-        const formData = new FormData(event.currentTarget);
+        const currentTarget = event.currentTarget;
+        const formData = new FormData(currentTarget);
         const availability = formData.get("availability") as string;
         const skills = formData.get("skills") as string;
 
@@ -43,7 +44,8 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
                 skills,
             });
             utils.application.getByJobId.invalidate();
-            trpc.application.withdraw;
+            utils.user.getMe.invalidate();
+            router.push("/dashboard/jobseeker");
         } finally {
             setIsSubmitting(false);
         }
@@ -53,7 +55,9 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
         trpc.application.getByJobId.useQuery(
             { jobId: jobId },
             { enabled: !!jobId }
-        );
+      );
+
+    console.log("applications", applications);
 
     return (
         <Card>
@@ -71,7 +75,7 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
                             disabled={
                                 isSubmitting ||
                                 isApplicationsLoading ||
-                                applications?.length === 0
+                                (applications && applications?.length > 0)
                             }
                             required
                         />
@@ -85,7 +89,7 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
                             disabled={
                                 isSubmitting ||
                                 isApplicationsLoading ||
-                                applications?.length === 0
+                                (applications && applications?.length > 0)
                             }
                             required
                         />
@@ -95,17 +99,17 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
                         disabled={
                             isSubmitting ||
                             isApplicationsLoading ||
-                            applications?.length === 0
+                            (applications && applications?.length > 0)
                         }
                     >
                         {isSubmitting ? "Submitting..." : "Submit Interest"}
-                        {applications && applications?.length > 0 && (
-                            <span className="text-xs text-gray-500">
-                                You have already applied for this job
-                            </span>
-                        )}
                     </Button>
                 </form>
+                {applications && applications?.length > 0 && (
+                    <span className="text-xs text-gray-500">
+                        You have already applied for this job
+                    </span>
+                )}
             </CardContent>
         </Card>
     );

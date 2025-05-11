@@ -43,6 +43,7 @@ export function JobQuestionForm({ jobId, companyId }: JobQuestionFormProps) {
                 jobId,
                 question,
             });
+            utils.jobQuestion.getByJobId.invalidate();
             currentTarget.reset();
         } finally {
             setIsSubmitting(false);
