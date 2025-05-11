@@ -41,7 +41,10 @@ export const createJobInputSchema = z
             invalid_type_error: "Invalid job contract type",
         }),
         experienceLevel: z.enum(experienceLevelEnum.enumValues).optional(),
-        isActive: z.boolean().optional(), // Default is true in schema
+        minimumWeeklyHourCommitment: z.number().int().positive().optional(),
+        requiredSkills: z.array(z.string()).optional(),
+        isUrgent: z.boolean().optional(),
+        isActive: z.boolean().optional(),
     })
     .refine(
         (data) =>

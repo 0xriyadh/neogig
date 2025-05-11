@@ -80,7 +80,7 @@ const createJobFormSchema = z
             .positive()
             .optional(),
         requiredSkills: z.array(z.string()).optional(),
-        isUrgent: z.boolean(),
+        isUrgent: z.boolean().optional(),
         companyId: z.string().uuid("Invalid company ID"),
     })
     .refine(

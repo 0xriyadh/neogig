@@ -170,6 +170,16 @@ export function JobFilters() {
 
                 <Separator />
 
+                <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={resetFilters}
+                >
+                    Reset Filters
+                </Button>
+
+                <Separator />
+
                 <div className="space-y-4">
                     <div className="space-y-2">
                         <Label>Location</Label>
@@ -360,16 +370,6 @@ export function JobFilters() {
                             Show urgent jobs only
                         </Label>
                     </div>
-
-                    <Separator />
-
-                    <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={resetFilters}
-                    >
-                        Reset Filters
-                    </Button>
                 </div>
             </div>
         </Card>
