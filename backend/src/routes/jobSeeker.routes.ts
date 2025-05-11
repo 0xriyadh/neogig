@@ -6,7 +6,7 @@ import {
     jobSeekerIdInputSchema,
 } from "../models/jobSeeker.models";
 import { TRPCError } from "@trpc/server";
-
+import logger from "../utility/logger";
 export const jobSeekerRouter = router({
     // Query to get all job seeker profiles
     getAll: publicProcedure.query(async () => {
@@ -70,6 +70,8 @@ export const jobSeekerRouter = router({
     update: publicProcedure
         .input(updateJobSeekerInputSchema)
         .mutation(async ({ input }) => {
+            logger.info("Updating job seeker profile:", input);
+            
             try {
                 const { userId, ...updateData } = input;
                 const updatedSeeker = await jobSeekerService.updateJobSeeker(

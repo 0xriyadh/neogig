@@ -4,8 +4,12 @@ import { appRouter } from "./routes";
 import * as dotenv from "dotenv";
 import cors from "cors";
 import jwt from "jsonwebtoken";
+import logger from "./utility/logger";
+import { jobRouter } from "./routes/job.routes";
 
 dotenv.config();
+
+// Custom logger utility
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -36,7 +40,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
     // Ensure JWT_SECRET is loaded, or throw an error.
     // Consider a more robust secret management strategy for production.
-    console.error("FATAL ERROR: JWT_SECRET environment variable is not set.");
+    logger.error("FATAL ERROR: JWT_SECRET environment variable is not set.");
     process.exit(1);
 }
 
@@ -63,10 +67,11 @@ const createContext = ({
                 typeof decoded.role === "string"
             ) {
                 user = { id: decoded.userId, role: decoded.role };
+                logger.info(`User authenticated: ${user.id} (${user.role})`);
             }
         } catch (error) {
             // Token verification failed (e.g., expired, invalid)
-            console.warn("JWT verification failed:", error);
+            logger.warn("JWT verification failed:", error);
             // user remains null
         }
     }
@@ -74,6 +79,7 @@ const createContext = ({
     return { req, res, user };
 };
 
+// Mount tRPC router
 app.use(
     "/trpc",
     trpcExpress.createExpressMiddleware({
@@ -82,10 +88,12 @@ app.use(
     })
 );
 
+
 app.get("/", (req, res) => {
+    logger.info("Root endpoint accessed");
     res.send("Hello from NeoGig Backend!");
 });
 
 app.listen(port, () => {
-    console.log(`Server listening at http://localhost:${port}`);
+    logger.info(`Server listening at http://localhost:${port}`);
 });

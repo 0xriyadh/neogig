@@ -4,8 +4,10 @@ import {
     createUserInputSchema,
     updateUserInputSchema,
     userIdInputSchema,
+    updateJobSeekerProfileSchema,
 } from "../models/user.models";
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 
 export const userRouter = router({
     getMe: protectedProcedure.query(async ({ ctx }) => {
@@ -135,5 +137,20 @@ export const userRouter = router({
                     message: error.message || "Failed to delete user",
                 });
             }
+        }),
+
+    updateJobSeekerProfile: protectedProcedure
+        .input(updateJobSeekerProfileSchema)
+        .mutation(async ({ ctx, input }) => {
+            if (ctx.user.role !== "JOBSEEKER") {
+                throw new Error("Only jobseekers can update their profile");
+            }
+
+            const updatedProfile = await userService.updateJobSeekerProfile(
+                ctx.user.id,
+                input.profile
+            );
+
+            return updatedProfile;
         }),
 });

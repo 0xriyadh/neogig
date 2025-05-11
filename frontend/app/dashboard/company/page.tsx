@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
@@ -17,95 +17,34 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ApplicationList } from "@/components/applications/application-list";
+import { trpc } from "@/lib/trpc";
 
 export default function CompanyDashboard() {
     const router = useRouter();
-    const { logout, user } = useAuth();
-    const [profile, setProfile] = useState<any>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [isCreateJobModalOpen, setIsCreateJobModalOpen] = useState(false);
 
-    useEffect(() => {
-        // Simulating profile fetch
-        // In a real app, you would get the user ID from context or cookies
-        const mockFetch = async () => {
-            try {
-                setIsLoading(true);
-                // This would be replaced with actual API call
-                // await fetchTrpc("company.getById", { userId: "current-user-id" });
+    const { data: user } = trpc.user.getMe.useQuery();
 
-                // Mock data for demonstration
-                setTimeout(() => {
-                    setProfile({
-                        name: "TechCorp Solutions",
-                        location: "San Francisco, CA",
-                        phone: "+1 (555) 123-4567",
-                        industry: "TECH",
-                        description:
-                            "Leading technology solutions provider specializing in web and mobile development, cloud infrastructure, and AI implementations.",
-                        jobs: [
-                            {
-                                id: "1",
-                                title: "Frontend Developer",
-                                applicants: 12,
-                                status: "Active",
-                                date: "2025-04-15",
-                            },
-                            {
-                                id: "2",
-                                title: "DevOps Engineer",
-                                applicants: 8,
-                                status: "Draft",
-                                date: "2025-04-28",
-                            },
-                        ],
-                        applicants: [
-                            {
-                                id: "1",
-                                name: "John Smith",
-                                position: "Frontend Developer",
-                                stage: "Screening",
-                                date: "2025-04-28",
-                            },
-                            {
-                                id: "2",
-                                name: "Sara Williams",
-                                position: "Frontend Developer",
-                                stage: "Interview",
-                                date: "2025-04-26",
-                            },
-                            {
-                                id: "3",
-                                name: "Michael Brown",
-                                position: "DevOps Engineer",
-                                stage: "Applied",
-                                date: "2025-04-29",
-                            },
-                        ],
-                    });
-                    setIsLoading(false);
-                }, 1000);
-            } catch (err: any) {
-                setError(err.message || "Failed to load profile");
-                setIsLoading(false);
-            }
-        };
+    // Fetch company profile
+    const { data: profile, isLoading: isProfileLoading, error: profileError } = trpc.company.getById.useQuery(
+        { userId: user?.id || "" },
+        { enabled: !!user?.id }
+    );
 
-        mockFetch();
-    }, []);
+    // Fetch company's jobs
+    const { data: jobs, isLoading: isJobsLoading } = trpc.job.getByCompanyId.useQuery(
+        { userId: user?.id || "" },
+        { enabled: !!user?.id }
+    );
+
+    // Fetch applications for all jobs
+    const { data: applications, isLoading: isApplicationsLoading } = trpc.application.getByJobId.useQuery(
+        { jobId: jobs?.[0]?.id || "" },
+        { enabled: !!jobs?.[0]?.id }
+    );
 
     const handleLogout = () => {
-        // Use the logout function from auth context
-        logout();
-    };
-
-    // Placeholder for refetching profile data or jobs list
-    const handleJobCreated = () => {
-        console.log("Job created, refresh data here");
-        // Example: could refetch profile or trigger a toast message handled by the form itself
-        // For now, the form itself shows a success toast and closes.
-        // If you need to update the job list on this page, you'd add that logic here.
+        // logout();
     };
 
     const dashboardContent = (
@@ -142,17 +81,7 @@ export default function CompanyDashboard() {
                         <div>
                             <h3 className="font-medium mb-1">Industry</h3>
                             <p className="text-sm text-muted-foreground">
-                                {profile?.industry === "TECH"
-                                    ? "Technology"
-                                    : profile?.industry === "AGRI"
-                                    ? "Agriculture"
-                                    : profile?.industry === "HEALTH"
-                                    ? "Healthcare"
-                                    : profile?.industry === "FINANCE"
-                                    ? "Finance"
-                                    : profile?.industry === "EDUCATION"
-                                    ? "Education"
-                                    : "Other"}
+                                {profile?.industry}
                             </p>
                         </div>
                         <div>
@@ -199,9 +128,9 @@ export default function CompanyDashboard() {
                             </Button>
                         </CardHeader>
                         <CardContent>
-                            {profile?.jobs?.length > 0 ? (
+                            {jobs && jobs.length > 0 ? (
                                 <div className="space-y-4">
-                                    {profile.jobs.map((job: any) => (
+                                    {jobs.map((job) => (
                                         <div
                                             key={job.id}
                                             className="flex justify-between items-center border-b pb-3"
@@ -211,23 +140,51 @@ export default function CompanyDashboard() {
                                                     {job.title}
                                                 </h3>
                                                 <p className="text-sm text-muted-foreground">
-                                                    {job.applicants} applicants
+                                                    {applications?.length || 0} applicants
                                                 </p>
                                             </div>
                                             <div className="text-right">
                                                 <span
                                                     className={`inline-block px-2 py-1 text-xs rounded-full ${
-                                                        job.status === "Active"
+                                                        job.isActive
                                                             ? "bg-green-100 text-green-800"
                                                             : "bg-gray-100 text-gray-800"
                                                     }`}
                                                 >
-                                                    {job.status}
+                                                    {job.isActive ? "Active" : "Draft"}
                                                 </span>
                                                 <p className="text-xs text-muted-foreground mt-1">
-                                                    Posted: {job.date}
+                                                    Posted: {new Date(job.createdAt).toLocaleDateString()}
                                                 </p>
                                             </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-center py-4 text-muted-foreground">
+                                    No jobs posted yet
+                                </p>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Applications Section */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Job Applications</CardTitle>
+                            <CardDescription>
+                                Review and manage job applications
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {jobs && jobs.length > 0 ? (
+                                <div className="space-y-6">
+                                    {jobs.map((job) => (
+                                        <div key={job.id} className="space-y-4">
+                                            <h3 className="font-medium text-lg">
+                                                {job.title}
+                                            </h3>
+                                            <ApplicationList jobId={job.id} />
                                         </div>
                                     ))}
                                 </div>
@@ -248,52 +205,45 @@ export default function CompanyDashboard() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {profile?.applicants?.length > 0 ? (
+                            {applications && applications.length > 0 ? (
                                 <div className="space-y-4">
-                                    {profile.applicants.map(
-                                        (jobSeeker: any) => (
+                                    {applications.map((application) => {
+                                        const job = jobs?.find(j => j.id === application.jobId);
+                                        return (
                                             <div
-                                                key={jobSeeker.id}
+                                                key={application.id}
                                                 className="flex justify-between items-center border-b pb-3"
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="h-10 w-10">
                                                         <AvatarFallback>
-                                                            {jobSeeker.name
-                                                                .split(" ")
-                                                                .map(
-                                                                    (
-                                                                        n: string
-                                                                    ) => n[0]
-                                                                )
-                                                                .join("")}
+                                                            {application.jobSeekerId
+                                                                .substring(0, 2)
+                                                                .toUpperCase()}
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <div>
                                                         <h3 className="font-medium">
-                                                            {jobSeeker.name}
+                                                            {application.jobSeekerId}
                                                         </h3>
                                                         <p className="text-sm text-muted-foreground">
-                                                            {jobSeeker.position}
+                                                            {job?.title}
                                                         </p>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
                                                     <span
                                                         className={`inline-block px-2 py-1 text-xs rounded-full ${
-                                                            jobSeeker.stage ===
-                                                            "Applied"
+                                                            application.status === "PENDING"
                                                                 ? "bg-blue-100 text-blue-800"
-                                                                : jobSeeker.stage ===
-                                                                  "Screening"
+                                                                : application.status === "REVIEWED"
                                                                 ? "bg-purple-100 text-purple-800"
-                                                                : jobSeeker.stage ===
-                                                                  "Interview"
+                                                                : application.status === "INTERVIEWING"
                                                                 ? "bg-amber-100 text-amber-800"
                                                                 : "bg-green-100 text-green-800"
                                                         }`}
                                                     >
-                                                        {jobSeeker.stage}
+                                                        {application.status}
                                                     </span>
                                                     <Button
                                                         size="sm"
@@ -302,15 +252,15 @@ export default function CompanyDashboard() {
                                                         asChild
                                                     >
                                                         <Link
-                                                            href={`/applicants/${jobSeeker.id}`}
+                                                            href={`/applicants/${application.jobSeekerId}`}
                                                         >
                                                             View Profile
                                                         </Link>
                                                     </Button>
                                                 </div>
                                             </div>
-                                        )
-                                    )}
+                                        );
+                                    })}
                                 </div>
                             ) : (
                                 <p className="text-center py-4 text-muted-foreground">
@@ -335,7 +285,7 @@ export default function CompanyDashboard() {
         </div>
     );
 
-    if (isLoading) {
+    if (isProfileLoading || isJobsLoading || isApplicationsLoading) {
         return (
             <div className="container mx-auto p-6 max-w-5xl">
                 <div className="mb-6 flex justify-between items-center">
@@ -350,11 +300,11 @@ export default function CompanyDashboard() {
         );
     }
 
-    if (error) {
+    if (profileError) {
         return (
             <div className="container mx-auto p-6 max-w-5xl text-center">
                 <h2 className="text-2xl font-bold mb-4">Error</h2>
-                <p className="text-muted-foreground mb-6">{error}</p>
+                <p className="text-muted-foreground mb-6">{profileError.message}</p>
                 <Button variant="link" asChild className="mt-4">
                     <Link href="/auth/login">Back to Login</Link>
                 </Button>

@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
     jobTypeEnum,
     experienceLevelEnum,
-    jobCategoryEnum,
+    jobContractTypeEnum,
 } from "../db/schema/job";
 
 // Base response schema
@@ -15,6 +15,7 @@ export const jobResponseSchema = z.object({
     salaryMin: z.number().int().nullish(),
     salaryMax: z.number().int().nullish(),
     jobType: z.enum(jobTypeEnum.enumValues).nullish(),
+    jobCategory: z.enum(jobContractTypeEnum.enumValues),
     experienceLevel: z.enum(experienceLevelEnum.enumValues).nullish(),
     isActive: z.boolean(),
     createdAt: z.date(),
@@ -31,13 +32,14 @@ export const createJobInputSchema = z
         description: z
             .string()
             .min(1, { message: "Job description is required" }),
-        jobCategory: z.enum(jobCategoryEnum.enumValues, {
-            errorMap: () => ({ message: "Invalid job category" }),
-        }),
         location: z.string().optional(),
         salaryMin: z.number().int().positive().optional(),
         salaryMax: z.number().int().positive().optional(),
         jobType: z.enum(jobTypeEnum.enumValues).optional(),
+        jobCategory: z.enum(jobContractTypeEnum.enumValues, {
+            required_error: "Job category is required",
+            invalid_type_error: "Invalid job category",
+        }),
         experienceLevel: z.enum(experienceLevelEnum.enumValues).optional(),
         isActive: z.boolean().optional(), // Default is true in schema
     })

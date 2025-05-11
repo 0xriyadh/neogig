@@ -18,7 +18,6 @@ function DashboardLayoutClient({ children }: { children: ReactNode }) {
     useEffect(() => {
         // If not authenticated, redirect to login
         if (!isLoading && !currentUser) {
-            console.log("user", currentUser);
             router.push("/auth/login");
             return;
         }
