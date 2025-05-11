@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../config/trpc";
 import { TRPCError } from "@trpc/server";
-import { eq, and } from "drizzle-orm";
+import { eq, and, not } from "drizzle-orm";
 import { applications } from "../db/schema/application";
 import { db } from "../db";
 
@@ -15,7 +15,8 @@ export const applicationRouter = router({
                 .where(
                     and(
                         eq(applications.jobId, input.jobId),
-                        eq(applications.jobSeekerId, ctx.user.id)
+                        eq(applications.jobSeekerId, ctx.user.id),
+                        not(eq(applications.status, "WITHDRAWN"))
                     )
                 );
             return application;

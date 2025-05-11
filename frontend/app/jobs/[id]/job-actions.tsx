@@ -19,8 +19,7 @@ export function JobActions({ jobId }: JobActionsProps) {
     const { data: application } = trpc.application.getByJobId.useQuery({
         jobId,
     });
-
-    console.log("savedJob", savedJob);
+    const utils = trpc.useUtils();
 
     const saveJob = trpc.savedJob.toggle.useMutation({
         onSuccess: () => {
@@ -45,7 +44,19 @@ export function JobActions({ jobId }: JobActionsProps) {
     async function handleSaveJob() {
         setIsLoading(true);
         try {
-            await saveJob.mutateAsync({ jobId });
+            await saveJob.mutateAsync(
+                { jobId },
+                {
+                    onSuccess: () => {
+                        utils.savedJob.getByJobId.invalidate();
+                        toast.success("Job Saved");
+                        router.refresh();
+                    },
+                    onError: (error: any) => {
+                        toast.error(error.message);
+                    },
+                }
+            );
         } finally {
             setIsLoading(false);
         }

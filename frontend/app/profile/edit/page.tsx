@@ -26,7 +26,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCurrentUser } from "@/lib/hooks/useCurrentUser";
 import { trpc } from "@/lib/trpc";
 import { Loader2, ArrowLeft } from "lucide-react";
-import { TRPCClientError } from "@trpc/client";
 import { JobSeeker } from "@/types/user-types";
 import { Switch } from "@/components/ui/switch";
 
