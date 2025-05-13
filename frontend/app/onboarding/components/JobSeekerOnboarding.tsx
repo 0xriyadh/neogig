@@ -120,27 +120,13 @@ export function JobSeekerOnboarding() {
     const isLoading =
         updateJobSeekerMutation.status === "pending" ||
         updateUserMutation.status === "pending";
-
-    const handleLogout = () => {
-        logout();
-    };
-
     return (
         <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
             <Card className="w-full max-w-2xl">
                 <CardHeader className="space-y-1">
-                    <div className="flex justify-between items-center">
-                        <CardTitle className="text-2xl font-bold">
-                            Complete your profile
-                        </CardTitle>
-                        <Button
-                            variant="outline"
-                            onClick={handleLogout}
-                            size="sm"
-                        >
-                            Logout
-                        </Button>
-                    </div>
+                    <CardTitle className="text-2xl font-bold">
+                        Complete your profile
+                    </CardTitle>
                     <CardDescription>
                         Tell us more about yourself to help find the perfect job
                     </CardDescription>

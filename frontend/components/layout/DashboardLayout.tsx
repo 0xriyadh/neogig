@@ -16,6 +16,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
     const handleLogout = () => {
         logout();
+        
     };
 
     return (

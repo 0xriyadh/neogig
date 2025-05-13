@@ -24,18 +24,10 @@ import { useCurrentUser } from "@/lib/hooks/useCurrentUser";
 import { JobSeeker, JobApplication, SavedJob } from "@/types/user-types";
 
 export default function JobSeekerDashboard() {
-    const router = useRouter();
-    const { logout } = useAuth();
     const { currentUser, isLoading, error } = useCurrentUser();
 
-    // Type guard to ensure we're working with a JobSeeker
     const jobSeeker =
         currentUser?.role === "jobseeker" ? (currentUser as JobSeeker) : null;
-
-    const handleLogout = () => {
-        logout();
-        router.push("/auth/login");
-    };
 
     const dashboardContent = (
         <div className="container mx-auto p-6 max-w-5xl">
