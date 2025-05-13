@@ -16,7 +16,13 @@ interface JobSeekerProfile {
     };
     applications: {
         id: string;
-        status: "PENDING" | "REVIEWED" | "INTERVIEWING" | "OFFERED" | "REJECTED" | "WITHDRAWN";
+        status:
+            | "PENDING"
+            | "REVIEWED"
+            | "INTERVIEWING"
+            | "OFFERED"
+            | "REJECTED"
+            | "WITHDRAWN";
         appliedAt: string;
         job: {
             id: string;
@@ -37,17 +43,21 @@ interface JobSeekerProfile {
 }
 
 export const useCurrentUser = () => {
-    const { user } = useAuth();
+    const { user: authUser } = useAuth();
+
     const query = trpc.user.getMe.useQuery(undefined, {
+        enabled: !!authUser,
         staleTime: 5 * 60 * 1000,
     });
 
+    const currentUser = authUser
+        ? authUser.role === "jobseeker"
+            ? (query.data as JobSeekerProfile | undefined)
+            : (query.data as Company | undefined)
+        : null;
+
     return {
         ...query,
-        currentUser:
-            user?.role === "jobseeker"
-                ? (query?.data as JobSeekerProfile | undefined)
-                : (query?.data as Company | undefined),
-        loading: query.isLoading,
+        currentUser: currentUser,
     };
 };

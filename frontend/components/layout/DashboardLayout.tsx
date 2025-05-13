@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { User } from "lucide-react"; // Assuming you might want a user icon later
 import { useAuth } from "@/lib/auth";
 import { useCurrentUser } from "@/lib/hooks/useCurrentUser";
+import { trpc } from "@/lib/trpc";
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -16,7 +17,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
     const handleLogout = () => {
         logout();
-        
     };
 
     return (
