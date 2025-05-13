@@ -24,6 +24,159 @@ async function seed() {
     await db.delete(companies);
     await db.delete(users);
 
+    // Create specific user account for both company and jobseeker
+    const specificCompanyUser = await db
+        .insert(users)
+        .values({
+            email: "company@company.com",
+            password: await hash("company@company.com", 10),
+            role: "company", // We'll create a separate user for jobseeker role
+            profileCompleted: true,
+        })
+        .returning();
+
+    // Create company profile for the specific user
+    const specificCompany = await db
+        .insert(companies)
+        .values({
+            userId: specificCompanyUser[0].id,
+            name: "Test Company",
+            location: "San Francisco",
+            phone: generatePhoneNumber(),
+            industry: "TECH",
+            description: "A leading technology company",
+            registrationDate: new Date().toISOString().split("T")[0],
+        })
+        .returning();
+
+    // Create a separate user for jobseeker role with same credentials
+    const specificJobSeekerUser = await db
+        .insert(users)
+        .values({
+            email: "jobseeker@jobseeker.com",
+            password: await hash("jobseeker@jobseeker.com", 10),
+            role: "jobseeker",
+            profileCompleted: true,
+        })
+        .returning();
+
+    // Create jobseeker profile for the specific user
+    const specificJobSeeker = await db
+        .insert(jobSeekers)
+        .values({
+            userId: specificJobSeekerUser[0].id,
+            name: "John Doe",
+            address: "123 Main St, San Francisco",
+            gender: "Male",
+            mobile: generatePhoneNumber(),
+            description: "Experienced software developer",
+            preferredJobType: "HYBRID",
+            availableSchedule: {
+                monday: { start: "09:00", end: "17:00" },
+                tuesday: { start: "09:00", end: "17:00" },
+                wednesday: { start: "09:00", end: "17:00" },
+                thursday: { start: "09:00", end: "17:00" },
+                friday: { start: "09:00", end: "17:00" },
+            },
+            skills: "TypeScript, React, Node.js, AWS, GraphQL",
+            currentlyLookingForJob: true,
+            openToUrgentJobs: true,
+            lastMinuteAvailability: true,
+        })
+        .returning();
+
+    // Create specific job listings for the company
+    const specificJobs = await Promise.all([
+        db.insert(jobs).values({
+            companyId: specificCompanyUser[0].id,
+            title: "Senior Full Stack Developer",
+            description: "Looking for an experienced full stack developer to join our team. Must have experience with React, Node.js, and TypeScript.",
+            location: "San Francisco",
+            salaryMin: 120000,
+            salaryMax: 180000,
+            jobType: "HYBRID",
+            jobContractType: "PART_TIME",
+            experienceLevel: "SENIOR",
+            minimumWeeklyHourCommitment: 40,
+            requiredSkills: ["TypeScript", "React", "Node.js", "AWS", "GraphQL"],
+            isUrgent: true,
+            isActive: true,
+        }).returning(),
+        db.insert(jobs).values({
+            companyId: specificCompanyUser[0].id,
+            title: "Frontend Developer",
+            description: "Join our team as a frontend developer. We're looking for someone passionate about creating beautiful user interfaces.",
+            location: "Remote",
+            salaryMin: 90000,
+            salaryMax: 130000,
+            jobType: "REMOTE",
+            jobContractType: "PART_TIME",
+            experienceLevel: "MID",
+            minimumWeeklyHourCommitment: 40,
+            requiredSkills: ["JavaScript", "React", "TypeScript", "Tailwind CSS"],
+            isUrgent: false,
+            isActive: true,
+        }).returning(),
+        db.insert(jobs).values({
+            companyId: specificCompanyUser[0].id,
+            title: "DevOps Engineer",
+            description: "Looking for a DevOps engineer to help us scale our infrastructure and improve our deployment processes.",
+            location: "San Francisco",
+            salaryMin: 130000,
+            salaryMax: 190000,
+            jobType: "HYBRID",
+            jobContractType: "PART_TIME",
+            experienceLevel: "SENIOR",
+            minimumWeeklyHourCommitment: 40,
+            requiredSkills: ["AWS", "Docker", "Kubernetes", "CI/CD", "Terraform"],
+            isUrgent: true,
+            isActive: true,
+        }).returning(),
+    ]);
+
+    // Create applications for the specific jobseeker
+    await Promise.all([
+        // Apply to the Senior Full Stack position
+        db.insert(applications).values({
+            jobId: specificJobs[0][0].id,
+            jobSeekerId: specificJobSeekerUser[0].id,
+            status: "INTERVIEWING",
+            coverLetter: "I am excited to apply for the Senior Full Stack Developer position. With my 5+ years of experience in React, Node.js, and TypeScript, I believe I would be a great fit for your team.",
+        }),
+        // Apply to the Frontend Developer position
+        db.insert(applications).values({
+            jobId: specificJobs[1][0].id,
+            jobSeekerId: specificJobSeekerUser[0].id,
+            status: "PENDING",
+            coverLetter: "I am writing to express my interest in the Frontend Developer position. I have extensive experience with React and TypeScript, and I am particularly drawn to your company's focus on user experience.",
+        }),
+        // Apply to the DevOps position
+        db.insert(applications).values({
+            jobId: specificJobs[2][0].id,
+            jobSeekerId: specificJobSeekerUser[0].id,
+            status: "REVIEWED",
+            coverLetter: "While my primary experience is in frontend development, I have been working extensively with AWS and Docker in my current role. I am eager to transition into a DevOps role and believe I can bring valuable perspective to your team.",
+        }),
+    ]);
+
+    // Create some job questions for the specific jobs
+    await Promise.all([
+        db.insert(jobQuestions).values({
+            jobId: specificJobs[0][0].id,
+            jobSeekerId: specificJobSeekerUser[0].id,
+            question: "What is your experience with microservices architecture?",
+            answer: "I have worked with microservices for the past 3 years, primarily using Node.js and Docker. I've helped design and implement several microservices that handle user authentication, payment processing, and real-time notifications.",
+            isAnswered: true,
+        }),
+        db.insert(jobQuestions).values({
+            jobId: specificJobs[1][0].id,
+            jobSeekerId: specificJobSeekerUser[0].id,
+            question: "Can you describe your experience with state management in React applications?",
+            answer: "I have extensive experience with various state management solutions including Redux, Zustand, and React Query. I prefer using React Query for server state and Zustand for client state due to their simplicity and performance.",
+            isAnswered: true,
+        }),
+    ]);
+
     // Create users (both job seekers and companies)
     const userCount = 20;
     const createdUsers = [];
@@ -75,7 +228,24 @@ async function seed() {
     );
     const createdJobSeekers = [];
 
+    const commonSkills = [
+        "JavaScript",
+        "TypeScript",
+        "React",
+        "Node.js",
+        "Python",
+        "Java",
+        "SQL",
+        "AWS",
+        "Docker",
+        "Kubernetes",
+    ];
+
     for (const user of jobSeekerUsers) {
+        // Generate random skills (2-5 skills per job seeker)
+        const numSkills = faker.number.int({ min: 2, max: 5 });
+        const selectedSkills = faker.helpers.arrayElements(commonSkills, numSkills);
+        
         const jobSeeker = await db
             .insert(jobSeekers)
             .values({
@@ -97,7 +267,10 @@ async function seed() {
                     thursday: { start: "09:00", end: "17:00" },
                     friday: { start: "09:00", end: "17:00" },
                 },
+                skills: selectedSkills.join(", "),
                 currentlyLookingForJob: faker.datatype.boolean(),
+                openToUrgentJobs: faker.datatype.boolean(),
+                lastMinuteAvailability: faker.datatype.boolean(),
             })
             .returning();
         createdJobSeekers.push(jobSeeker[0]);

@@ -27,7 +27,10 @@ export const jobSeekers = pgTable("job_seekers", {
     description: text("description"),
     preferredJobType: preferredJobTypeEnum("preferred_job_type"),
     availableSchedule: json("available_schedule"), // Consider a more structured type later if needed
+    skills: text("skills"),
     currentlyLookingForJob: boolean("currently_looking_for_job").default(true),
+    openToUrgentJobs: boolean("open_to_urgent_jobs").default(false),
+    lastMinuteAvailability: boolean("last_minute_availability").default(false),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

@@ -3,6 +3,7 @@ import { protectedProcedure, router } from "../config/trpc";
 import { TRPCError } from "@trpc/server";
 import { eq, and, not } from "drizzle-orm";
 import { applications } from "../db/schema/application";
+import { jobSeekers } from "../db/schema/jobSeeker";
 import { db } from "../db";
 import { type Context } from "../server";
 
@@ -11,8 +12,24 @@ export const applicationRouter = router({
         .input(z.object({ jobId: z.string() }))
         .query(async ({ ctx, input }) => {
             const application = await db
-                .select()
+                .select({
+                    id: applications.id,
+                    jobId: applications.jobId,
+                    jobSeekerId: applications.jobSeekerId,
+                    status: applications.status,
+                    coverLetter: applications.coverLetter,
+                    appliedAt: applications.appliedAt,
+                    updatedAt: applications.updatedAt,
+                    jobSeeker: {
+                        id: jobSeekers.userId,
+                        name: jobSeekers.name,
+                        description: jobSeekers.description,
+                        preferredJobType: jobSeekers.preferredJobType,
+                        availableSchedule: jobSeekers.availableSchedule,
+                    }
+                })
                 .from(applications)
+                .leftJoin(jobSeekers, eq(applications.jobSeekerId, jobSeekers.userId))
                 .where(
                     and(
                         eq(applications.jobId, input.jobId),
@@ -20,6 +37,40 @@ export const applicationRouter = router({
                     )
                 );
             return application;
+        }),
+
+    updateStatus: protectedProcedure
+        .input(
+            z.object({
+                id: z.string(),
+                status: z.enum(["PENDING", "REVIEWED", "INTERVIEWING", "OFFERED", "WITHDRAWN"]),
+                response: z.string().optional(),
+            })
+        )
+        .mutation(async ({ ctx, input }) => {
+            const application = await db
+                .select()
+                .from(applications)
+                .where(eq(applications.id, input.id));
+
+            if (!application.length) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Application not found",
+                });
+            }
+
+            const [updatedApplication] = await db
+                .update(applications)
+                .set({
+                    status: input.status,
+                    updatedAt: new Date(),
+                    ...(input.response && { response: input.response }),
+                })
+                .where(eq(applications.id, input.id))
+                .returning();
+
+            return updatedApplication;
         }),
 
     submitInterest: protectedProcedure

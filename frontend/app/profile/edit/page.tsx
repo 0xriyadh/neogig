@@ -25,9 +25,37 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useCurrentUser } from "@/lib/hooks/useCurrentUser";
 import { trpc } from "@/lib/trpc";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Check, ChevronsUpDown } from "lucide-react";
 import { JobSeeker } from "@/types/user-types";
 import { Switch } from "@/components/ui/switch";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { useState } from "react";
+
+interface TimeSlot {
+    start: string;
+    end: string;
+}
+
+interface AvailableSchedule {
+    [key: string]: TimeSlot;
+}
+
+const commonSkills = [
+    "JavaScript",
+    "TypeScript",
+    "React",
+    "Node.js",
+    "Python",
+    "Java",
+    "SQL",
+    "AWS",
+    "Docker",
+    "Kubernetes",
+];
 
 const profileFormSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -36,7 +64,11 @@ const profileFormSchema = z.object({
     mobile: z.string().min(10, "Mobile number must be at least 10 digits"),
     description: z.string().min(10, "Description must be at least 10 characters"),
     preferredJobType: z.enum(["REMOTE", "ONSITE", "HYBRID"]),
-    availableSchedule: z.string(),
+    availableSchedule: z.record(z.object({
+        start: z.string(),
+        end: z.string()
+    })),
+    skills: z.array(z.string()),
     currentlyLookingForJob: z.boolean(),
     openToUrgentJobs: z.boolean(),
     lastMinuteAvailability: z.boolean(),
@@ -48,8 +80,17 @@ export default function EditProfilePage() {
     const router = useRouter();
     const { currentUser, loading: isLoadingUser } = useCurrentUser();
     const utils = trpc.useUtils();
+    const [openSkills, setOpenSkills] = useState(false);
 
     const jobSeeker = currentUser?.role === "jobseeker" ? (currentUser as JobSeeker) : null;
+
+    const defaultSchedule: AvailableSchedule = {
+        monday: { start: "09:00", end: "17:00" },
+        tuesday: { start: "09:00", end: "17:00" },
+        wednesday: { start: "09:00", end: "17:00" },
+        thursday: { start: "09:00", end: "17:00" },
+        friday: { start: "09:00", end: "17:00" },
+    };
 
     const form = useForm<ProfileFormValues>({
         resolver: zodResolver(profileFormSchema),
@@ -60,7 +101,8 @@ export default function EditProfilePage() {
             mobile: jobSeeker?.profile?.mobile || "",
             description: jobSeeker?.profile?.description || "",
             preferredJobType: (jobSeeker?.profile?.preferredJobType as "REMOTE" | "ONSITE" | "HYBRID") || "REMOTE",
-            availableSchedule: jobSeeker?.profile?.availableSchedule || "",
+            availableSchedule: jobSeeker?.profile?.availableSchedule ? JSON.parse(jobSeeker.profile.availableSchedule) : defaultSchedule,
+            skills: jobSeeker?.profile?.skills ? jobSeeker.profile.skills.split(", ") : [],
             currentlyLookingForJob: jobSeeker?.profile?.currentlyLookingForJob ?? true,
             openToUrgentJobs: jobSeeker?.profile?.openToUrgentJobs ?? false,
             lastMinuteAvailability: jobSeeker?.profile?.lastMinuteAvailability ?? false,
@@ -101,9 +143,24 @@ export default function EditProfilePage() {
             id: jobSeeker.id,
             profile: {
                 ...data,
+                availableSchedule: JSON.stringify(data.availableSchedule),
+                skills: data.skills.join(", "),
             },
         });
     }
+
+    const generateTimeOptions = () => {
+        const times = [];
+        for (let hour = 0; hour < 24; hour++) {
+            for (let minute = 0; minute < 60; minute += 30) {
+                const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                times.push(time);
+            }
+        }
+        return times;
+    };
+
+    const timeOptions = generateTimeOptions();
 
     return (
         <div className="container mx-auto max-w-2xl py-8">
@@ -228,9 +285,137 @@ export default function EditProfilePage() {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Available Schedule</FormLabel>
-                                <FormControl>
-                                    <Input {...field} placeholder="e.g., Monday-Friday, 9 AM - 5 PM" />
-                                </FormControl>
+                                <div className="space-y-4">
+                                    {Object.entries(field.value).map(([day, schedule]) => (
+                                        <div key={day} className="flex items-center gap-4">
+                                            <div className="flex items-center space-x-2">
+                                                <Switch
+                                                    checked={true}
+                                                    onCheckedChange={() => {
+                                                        const newSchedule = { ...field.value };
+                                                        if (newSchedule[day]) {
+                                                            delete newSchedule[day];
+                                                        } else {
+                                                            newSchedule[day] = { start: "09:00", end: "17:00" };
+                                                        }
+                                                        field.onChange(newSchedule);
+                                                    }}
+                                                />
+                                                <Label className="capitalize min-w-[100px]">{day}</Label>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Select
+                                                    value={schedule.start}
+                                                    onValueChange={(value) => {
+                                                        const newSchedule = { ...field.value };
+                                                        newSchedule[day] = { ...schedule, start: value };
+                                                        field.onChange(newSchedule);
+                                                    }}
+                                                >
+                                                    <SelectTrigger className="w-[120px]">
+                                                        <SelectValue placeholder="Start time" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {timeOptions.map((time) => (
+                                                            <SelectItem key={`${day}-start-${time}`} value={time}>
+                                                                {time}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <span>to</span>
+                                                <Select
+                                                    value={schedule.end}
+                                                    onValueChange={(value) => {
+                                                        const newSchedule = { ...field.value };
+                                                        newSchedule[day] = { ...schedule, end: value };
+                                                        field.onChange(newSchedule);
+                                                    }}
+                                                >
+                                                    <SelectTrigger className="w-[120px]">
+                                                        <SelectValue placeholder="End time" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {timeOptions.map((time) => (
+                                                            <SelectItem key={`${day}-end-${time}`} value={time}>
+                                                                {time}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="skills"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Skills</FormLabel>
+                                <Popover open={openSkills} onOpenChange={setOpenSkills}>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={openSkills}
+                                            className="w-full justify-between"
+                                        >
+                                            {field.value.length > 0
+                                                ? `${field.value.length} skills selected`
+                                                : "Select skills..."}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-full p-0">
+                                        <Command>
+                                            <CommandInput placeholder="Search skills..." />
+                                            <CommandEmpty>No skills found.</CommandEmpty>
+                                            <CommandGroup>
+                                                {commonSkills.map((skill) => (
+                                                    <CommandItem
+                                                        key={skill}
+                                                        onSelect={() => {
+                                                            const newSkills = field.value.includes(skill)
+                                                                ? field.value.filter((s) => s !== skill)
+                                                                : [...field.value, skill];
+                                                            field.onChange(newSkills);
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                field.value.includes(skill) ? "opacity-100" : "opacity-0"
+                                                            )}
+                                                        />
+                                                        {skill}
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
+                                {field.value.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {field.value.map((skill) => (
+                                            <Badge
+                                                key={skill}
+                                                variant="secondary"
+                                                className="cursor-pointer"
+                                                onClick={() => {
+                                                    field.onChange(field.value.filter((s) => s !== skill));
+                                                }}
+                                            >
+                                                {skill} ×
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                )}
                                 <FormMessage />
                             </FormItem>
                         )}

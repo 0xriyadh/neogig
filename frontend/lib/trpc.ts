@@ -14,12 +14,14 @@ export const trpcClient = createTRPCClient<any>({
         httpLink({
             url: apiUrl,
             fetch: (url, options) => {
+                const token = localStorage.getItem("authToken");
                 return fetch(url, {
                     ...options,
                     credentials: "include",
                     headers: {
                         ...options?.headers,
                         "Content-Type": "application/json",
+                        ...(token && { Authorization: `Bearer ${token}` }),
                     },
                 });
             },
@@ -48,6 +50,8 @@ export async function fetchTrpc<T>(path: string, input?: any): Promise<T> {
         input
     );
 
+    const token = localStorage.getItem("authToken");
+
     if (isMutation) {
         // Use POST for mutations
         const response = await fetch(`${apiUrl}/${path}`, {
@@ -55,6 +59,7 @@ export async function fetchTrpc<T>(path: string, input?: any): Promise<T> {
             headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
+                ...(token && { Authorization: `Bearer ${token}` }),
             },
             credentials: "include",
             // Important: Don't wrap the input in another object
@@ -85,6 +90,7 @@ export async function fetchTrpc<T>(path: string, input?: any): Promise<T> {
         const response = await fetch(url, {
             headers: {
                 Accept: "application/json",
+                ...(token && { Authorization: `Bearer ${token}` }),
             },
             credentials: "include",
         });

@@ -21,15 +21,25 @@ interface ApplicationListProps {
     jobId: string;
 }
 
+interface TimeSlot {
+    start: string;
+    end: string;
+}
+
+interface AvailableSchedule {
+    monday: TimeSlot;
+    tuesday: TimeSlot;
+    wednesday: TimeSlot;
+    thursday: TimeSlot;
+    friday: TimeSlot;
+}
+
 interface JobSeeker {
     id: string;
     name: string;
-    skills: string[];
-    availability: {
-        startDate: string;
-        endDate: string;
-        preferredHours: string[];
-    };
+    description: string | null;
+    preferredJobType: "REMOTE" | "ONSITE" | "HYBRID" | null;
+    availableSchedule: AvailableSchedule | null;
 }
 
 interface Application {
@@ -40,7 +50,7 @@ interface Application {
     coverLetter: string | null;
     appliedAt: string;
     updatedAt: string;
-    jobSeeker: JobSeeker;
+    jobSeeker: JobSeeker | null;
     scheduleCompatibility?: number;
 }
 
@@ -98,8 +108,15 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
         applicationId: string,
         score: number
     ) => {
-        // TODO: Implement schedule compatibility scoring
-        toast.info("Schedule compatibility scoring will be implemented");
+        const application = applications?.find(app => app.id === applicationId);
+        if (!application?.jobSeeker?.availableSchedule) {
+            toast.error("No availability information found for this candidate");
+            return;
+        }
+
+        const schedule = application.jobSeeker.availableSchedule as AvailableSchedule;
+        const compatibilityScore = calculateScheduleCompatibility(schedule);
+        toast.success(`Schedule compatibility score: ${compatibilityScore}%`);
     };
 
     if (isLoading) {
@@ -145,22 +162,22 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
                 <Card key={application.id}>
                     <CardHeader>
                         <div className="flex items-center justify-between">
-                            {/* <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-4">
                                 <Avatar>
                                     <AvatarImage
                                         src=""
-                                        alt={application.jobSeeker.name}
+                                        alt={application.jobSeeker?.name ?? "Unknown"}
                                     />
                                     <AvatarFallback>
-                                        {application.jobSeeker.name
-                                            .split(" ")
+                                        {application.jobSeeker?.name
+                                            ?.split(" ")
                                             .map((n) => n[0])
-                                            .join("")}
+                                            .join("") ?? "U"}
                                     </AvatarFallback>
                                 </Avatar>
                                 <div>
                                     <CardTitle>
-                                        {application.jobSeeker.name}
+                                        {application.jobSeeker?.name ?? "Unknown"}
                                     </CardTitle>
                                     <CardDescription>
                                         Applied:{" "}
@@ -169,7 +186,7 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
                                         ).toLocaleDateString()}
                                     </CardDescription>
                                 </div>
-                            </div> */}
+                            </div>
                             <Badge
                                 variant={
                                     application.status === "OFFERED"
@@ -198,39 +215,37 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
 
                             <div>
                                 <h4 className="font-medium mb-2">Skills</h4>
-                                {/* <div className="flex flex-wrap gap-2">
-                                    {application.jobSeeker.skills.map(
-                                        (skill) => (
-                                            <Badge
-                                                key={skill}
-                                                variant="secondary"
-                                            >
-                                                {skill}
-                                            </Badge>
-                                        )
+                                <div className="flex flex-wrap gap-2">
+                                    {application.jobSeeker?.description && (
+                                        <Badge variant="secondary">
+                                            {application.jobSeeker.description}
+                                        </Badge>
                                     )}
-                                </div> */}
+                                    {application.jobSeeker?.preferredJobType && (
+                                        <Badge variant="secondary">
+                                            {application.jobSeeker.preferredJobType}
+                                        </Badge>
+                                    )}
+                                </div>
                             </div>
 
                             <div>
                                 <h4 className="font-medium mb-2">
                                     Availability
                                 </h4>
-                                {/* <p className="text-sm text-muted-foreground">
-                                    {new Date(
-                                        application.jobSeeker.availability.startDate
-                                    ).toLocaleDateString()}{" "}
-                                    to{" "}
-                                    {new Date(
-                                        application.jobSeeker.availability.endDate
-                                    ).toLocaleDateString()}
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                    Preferred Hours:{" "}
-                                    {application.jobSeeker.availability.preferredHours.join(
-                                        ", "
-                                    )}
-                                </p> */}
+                                {application.jobSeeker?.availableSchedule ? (
+                                    <div className="space-y-2">
+                                        {Object.entries(application.jobSeeker.availableSchedule).map(([day, schedule]) => (
+                                            <p key={day} className="text-sm text-muted-foreground">
+                                                {day.charAt(0).toUpperCase() + day.slice(1)}: {schedule.start} - {schedule.end}
+                                            </p>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">
+                                        No availability information provided
+                                    </p>
+                                )}
                             </div>
 
                             {selectedApplication === application.id && (
@@ -319,11 +334,34 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
     );
 }
 
-// Helper function to calculate schedule compatibility
-function calculateScheduleCompatibility(
-    availability: JobSeeker["availability"]
-): number {
-    // TODO: Implement actual schedule compatibility calculation
-    // This is a placeholder that returns a random score
-    return Math.floor(Math.random() * 100);
-}
+const calculateScheduleCompatibility = (schedule: AvailableSchedule): number => {
+    const standardHours = {
+        start: "09:00",
+        end: "17:00"
+    };
+
+    let totalOverlap = 0;
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as const;
+
+    for (const day of days) {
+        const daySchedule = schedule[day];
+        if (!daySchedule) continue;
+
+        const standardStart = new Date(`2000-01-01T${standardHours.start}`);
+        const standardEnd = new Date(`2000-01-01T${standardHours.end}`);
+        const availableStart = new Date(`2000-01-01T${daySchedule.start}`);
+        const availableEnd = new Date(`2000-01-01T${daySchedule.end}`);
+
+        const overlapStart = new Date(Math.max(standardStart.getTime(), availableStart.getTime()));
+        const overlapEnd = new Date(Math.min(standardEnd.getTime(), availableEnd.getTime()));
+
+        if (overlapEnd > overlapStart) {
+            const overlapHours = (overlapEnd.getTime() - overlapStart.getTime()) / (1000 * 60 * 60);
+            totalOverlap += overlapHours;
+        }
+    }
+
+    // Calculate percentage of overlap with standard 40-hour work week
+    const standardWorkWeek = 8 * 5; // 8 hours * 5 days
+    return Math.round((totalOverlap / standardWorkWeek) * 100);
+}; 

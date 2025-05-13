@@ -18,7 +18,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ApplicationList } from "@/components/applications/application-list";
+import { RecentApplicants } from "@/components/applications/recent-applicants";
 import { trpc } from "@/lib/trpc";
+import { Eye } from "lucide-react";
 
 export default function CompanyDashboard() {
     const router = useRouter();
@@ -57,7 +59,7 @@ export default function CompanyDashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Company Profile */}
-                <Card>
+                <Card className="h-fit sticky top-20">
                     <CardHeader>
                         <div className="flex items-center gap-4">
                             <Avatar className="h-16 w-16">
@@ -202,115 +204,28 @@ export default function CompanyDashboard() {
                     </Card>
 
                     {/* Recent Applicants */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Recent Applicants</CardTitle>
-                            <CardDescription>
-                                Track candidates for your job listings
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {/* {applications && applications.length > 0 ? (
-                                <div className="space-y-4">
-                                    {applications.map((application) => {
-                                        const job = jobs?.find(
-                                            (j) => j.id === application.jobId
-                                        );
-                                        return (
-                                            <div
-                                                key={application.id}
-                                                className="flex justify-between items-center border-b pb-3"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <Avatar className="h-10 w-10">
-                                                        <AvatarFallback>
-                                                            {application.jobSeekerId
-                                                                .substring(0, 2)
-                                                                .toUpperCase()}
-                                                        </AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <h3 className="font-medium">
-                                                            {
-                                                                application.jobSeekerId
-                                                            }
-                                                        </h3>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            {job?.title}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <span
-                                                        className={`inline-block px-2 py-1 text-xs rounded-full ${
-                                                            application.status ===
-                                                            "PENDING"
-                                                                ? "bg-blue-100 text-blue-800"
-                                                                : application.status ===
-                                                                  "REVIEWED"
-                                                                ? "bg-purple-100 text-purple-800"
-                                                                : application.status ===
-                                                                  "INTERVIEWING"
-                                                                ? "bg-amber-100 text-amber-800"
-                                                                : "bg-green-100 text-green-800"
-                                                        }`}
-                                                    >
-                                                        {application.status}
-                                                    </span>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="link"
-                                                        className="h-auto p-0 block mt-1"
-                                                        asChild
-                                                    >
-                                                        <Link
-                                                            href={`/applicants/${application.jobSeekerId}`}
-                                                        >
-                                                            View Profile
-                                                        </Link>
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            ) : (
-                                <p className="text-center py-4 text-muted-foreground">
-                                    No applicants yet
-                                </p>
-                            )} */}
-                        </CardContent>
-                        <CardFooter>
-                            <Button
-                                variant="outline"
-                                className="w-full"
-                                asChild
-                            >
-                                <Link href="/applicants">
-                                    View All Applicants
-                                </Link>
-                            </Button>
-                        </CardFooter>
-                    </Card>
+                    {jobs && jobs.length > 0 && (
+                        <RecentApplicants jobId={jobs[0].id} />
+                    )}
                 </div>
             </div>
         </div>
     );
 
-    // if (isProfileLoading || isJobsLoading || isApplicationsLoading) {
-    //     return (
-    //         <div className="container mx-auto p-6 max-w-5xl">
-    //             <div className="mb-6 flex justify-between items-center">
-    //                 <Skeleton className="h-10 w-40" />
-    //                 <Skeleton className="h-10 w-24" />
-    //             </div>
-    //             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-    //                 <Skeleton className="h-[300px] w-full" />
-    //                 <Skeleton className="h-[300px] w-full md:col-span-2" />
-    //             </div>
-    //         </div>
-    //     );
-    // }
+    if (isProfileLoading || isJobsLoading) {
+        return (
+            <div className="container mx-auto p-6 max-w-5xl">
+                <div className="mb-6 flex justify-between items-center">
+                    <Skeleton className="h-10 w-40" />
+                    <Skeleton className="h-10 w-24" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Skeleton className="h-[300px] w-full" />
+                    <Skeleton className="h-[300px] w-full md:col-span-2" />
+                </div>
+            </div>
+        );
+    }
 
     if (profileError) {
         return (

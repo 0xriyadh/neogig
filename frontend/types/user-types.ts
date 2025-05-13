@@ -13,6 +13,7 @@ export interface JobSeekerProfile {
     description: string;
     preferredJobType: "REMOTE" | "ONSITE" | "HYBRID";
     availableSchedule?: string;
+    skills?: string;
     currentlyLookingForJob: boolean;
     openToUrgentJobs: boolean;
     lastMinuteAvailability: boolean;

@@ -1,9 +1,11 @@
+"use client";
+
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { fetchTrpc } from "@/lib/trpc";
+import { fetchTrpc, trpc } from "@/lib/trpc";
 import { Job } from "@/types/job";
 import { ArrowLeft, Bookmark, MessageSquare } from "lucide-react";
 import Link from "next/link";
@@ -11,29 +13,44 @@ import { Company } from "@/types/company";
 import { JobActions } from "./job-actions";
 import { JobQuestionForm } from "./job-question-form";
 import { QuickInterestForm } from "./quick-interest-form";
+import { use } from "react";
 
 interface JobPageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
-export const metadata = {
-    title: "Job Details | NeoGig",
-    description: "View detailed information about the job posting",
-};
 
-export default async function JobPage({ params }: JobPageProps) {
-    const job = await fetchTrpc<Job>("job.getById", { id: params.id }).catch(
-        () => null
+
+export default function JobPage({ params }: JobPageProps) {
+    const { id } = use(params);
+    const jobData = trpc.job.getById.useQuery({ id: id });
+
+    const companyData = trpc.company.getById.useQuery(
+        {
+            userId: jobData.data?.companyId || "",
+        },
+        {
+            enabled: !!jobData.data?.companyId, // Only run this query when we have a companyId
+        }
     );
-    const company = await fetchTrpc<Company>("company.getById", {
-        userId: job?.companyId,
-    }).catch(() => null);
+
+    if (jobData.isLoading) {
+        return <div>Loading job details...</div>;
+    }
+
+    if (jobData.isError) {
+        return <div>Error loading job details</div>;
+    }
+
+    const job = jobData.data;
+    const company = companyData.data;
 
     if (!job) {
         notFound();
     }
+
 
     return (
         <div className="container mx-auto py-8">
@@ -52,7 +69,7 @@ export default async function JobPage({ params }: JobPageProps) {
                             <div className="flex justify-between items-start">
                                 <div>
                                     <CardTitle className="text-3xl">
-                                        {job.title}
+                                        {job?.title}
                                     </CardTitle>
                                     <p className="text-muted-foreground mt-1">
                                         {company?.name || "Company not found"}
@@ -62,25 +79,25 @@ export default async function JobPage({ params }: JobPageProps) {
                                     variant="secondary"
                                     className="text-base px-4 py-1"
                                 >
-                                    {job.jobContractType}
+                                    {job?.jobContractType}
                                 </Badge>
                             </div>
 
                             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                                 <div className="flex items-center gap-2">
-                                    <span>{job.location || "Remote"}</span>
+                                    <span>{job?.location || "Remote"}</span>
                                 </div>
-                                {job.salaryMin && job.salaryMax && (
+                                {job?.salaryMin && job?.salaryMax && (
                                     <div className="flex items-center gap-2">
                                         <span>
-                                            {`${job.salaryMin?.toLocaleString()} - ${job.salaryMax?.toLocaleString()}`}{" "}
+                                            {`${job?.salaryMin?.toLocaleString()} - ${job?.salaryMax?.toLocaleString()}`}{" "}
                                             BDT
                                         </span>
                                     </div>
                                 )}
-                                {job.experienceLevel && (
+                                {job?.experienceLevel && (
                                     <div className="flex items-center gap-2">
-                                        <span>{job.experienceLevel}</span>
+                                        <span>{job?.experienceLevel}</span>
                                     </div>
                                 )}
                             </div>
@@ -93,7 +110,7 @@ export default async function JobPage({ params }: JobPageProps) {
                                 Job Description
                             </h2>
                             <div className="prose prose-sm max-w-none">
-                                {job.description
+                                {job?.description
                                     .split("\n")
                                     .map((paragraph, index) => (
                                         <p key={index} className="mb-4">
@@ -106,15 +123,15 @@ export default async function JobPage({ params }: JobPageProps) {
                         <Separator />
 
                         <div className="space-y-6">
-                            <QuickInterestForm jobId={job.id} />
+                            <QuickInterestForm jobId={job?.id} />
 
                             <div className="flex flex-col sm:flex-row gap-4">
-                                <JobActions jobId={job.id} />
+                                <JobActions jobId={job?.id} />
                             </div>
 
                             <JobQuestionForm
-                                jobId={job.id}
-                                companyId={job.companyId}
+                                jobId={job?.id}
+                                companyId={job?.companyId}
                             />
                         </div>
                     </CardContent>

@@ -273,6 +273,7 @@ export const updateJobSeekerProfile = async (
                     description: profileData.description,
                     preferredJobType: profileData.preferredJobType,
                     availableSchedule: profileData.availableSchedule,
+                    skills: profileData.skills,
                     currentlyLookingForJob: profileData.currentlyLookingForJob,
                 })
                 .returning();
@@ -290,6 +291,7 @@ export const updateJobSeekerProfile = async (
                 description: profileData.description,
                 preferredJobType: profileData.preferredJobType,
                 availableSchedule: profileData.availableSchedule,
+                skills: profileData.skills,
                 currentlyLookingForJob: profileData.currentlyLookingForJob,
                 updatedAt: new Date(),
             })

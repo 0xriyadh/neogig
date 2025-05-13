@@ -45,6 +45,7 @@ export const updateJobSeekerProfileSchema = z.object({
         description: z.string().min(10, "Description must be at least 10 characters"),
         preferredJobType: z.enum(["REMOTE", "ONSITE", "HYBRID"]),
         availableSchedule: z.string().optional(),
+        skills: z.string().optional(),
         currentlyLookingForJob: z.boolean().default(true),
         openToUrgentJobs: z.boolean().default(false),
         lastMinuteAvailability: z.boolean().default(false),

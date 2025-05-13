@@ -12,12 +12,30 @@ import { useQueryState } from "nuqs";
 import { useCallback, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { jobContractTypeEnum, jobTypeEnum } from "@/lib/enums";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 const experienceLevels = [
     { id: "entry", label: "Entry Level" },
     { id: "mid", label: "Mid Level" },
     { id: "senior", label: "Senior Level" },
     { id: "lead", label: "Lead" },
+];
+
+const commonSkills = [
+    "JavaScript",
+    "TypeScript",
+    "React",
+    "Node.js",
+    "Python",
+    "Java",
+    "SQL",
+    "AWS",
+    "Docker",
+    "Kubernetes",
 ];
 
 export function JobFilters() {
@@ -57,6 +75,12 @@ export function JobFilters() {
         serialize: (value) => `${value.min}-${value.max}`,
     });
 
+    const [selectedSkills, setSelectedSkills] = useQueryState("skills", {
+        defaultValue: [],
+        parse: (value) => value.split(",").filter(Boolean),
+        serialize: (value) => value.join(","),
+    });
+
     const [openSkills, setOpenSkills] = useState(false);
 
     const handleJobTypeChange = useCallback(
@@ -94,12 +118,22 @@ export function JobFilters() {
         [setSalaryRange]
     );
 
+    const handleSkillSelect = useCallback((skill: string) => {
+        setSelectedSkills((prev) => {
+            if (prev.includes(skill)) {
+                return prev.filter((s) => s !== skill);
+            }
+            return [...prev, skill];
+        });
+    }, [setSelectedSkills]);
+
     const resetFilters = useCallback(() => {
         setSelectedJobTypes([]);
         setExperienceLevel("");
         setSalaryRange({ min: 0, max: 100000 });
         setLocation("");
         setSelectedJobContractType("");
+        setSelectedSkills([]);
         setShowUrgentOnly(false);
     }, [
         setSelectedJobTypes,
@@ -107,6 +141,7 @@ export function JobFilters() {
         setSalaryRange,
         setLocation,
         setSelectedJobContractType,
+        setSelectedSkills,
         setShowUrgentOnly,
     ]);
 
@@ -236,6 +271,63 @@ export function JobFilters() {
                                 onChange={handleMaxSalaryChange}
                             />
                         </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-2">
+                        <Label>Required Skills</Label>
+                        <Popover open={openSkills} onOpenChange={setOpenSkills}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={openSkills}
+                                    className="w-full justify-between"
+                                >
+                                    {selectedSkills.length > 0
+                                        ? `${selectedSkills.length} skills selected`
+                                        : "Select skills..."}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                                <Command>
+                                    <CommandInput placeholder="Search skills..." />
+                                    <CommandEmpty>No skills found.</CommandEmpty>
+                                    <CommandGroup>
+                                        {commonSkills.map((skill) => (
+                                            <CommandItem
+                                                key={skill}
+                                                onSelect={() => handleSkillSelect(skill)}
+                                            >
+                                                <Check
+                                                    className={cn(
+                                                        "mr-2 h-4 w-4",
+                                                        selectedSkills.includes(skill) ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                />
+                                                {skill}
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+                        {selectedSkills.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {selectedSkills.map((skill) => (
+                                    <Badge
+                                        key={skill}
+                                        variant="secondary"
+                                        className="cursor-pointer"
+                                        onClick={() => handleSkillSelect(skill)}
+                                    >
+                                        {skill} ×
+                                    </Badge>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <Separator />
