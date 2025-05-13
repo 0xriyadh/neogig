@@ -291,7 +291,7 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
                                             onClick={() =>
                                                 handleStatusChange(
                                                     application.id,
-                                                    "WITHDRAWN"
+                                                    "REJECTED"
                                                 )
                                             }
                                         >

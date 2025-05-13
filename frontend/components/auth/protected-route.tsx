@@ -15,33 +15,7 @@ export function ProtectedRoute({
     requiredRole,
 }: ProtectedRouteProps) {
     const { user, loading, isAuthenticated } = useAuth();
-    const router = useRouter();
 
-    useEffect(() => {
-        // If not loading and not authenticated, redirect to login
-        if (!loading && !isAuthenticated) {
-            router.push("/auth/login");
-        }
-
-        // If role is required and user doesn't have that role, redirect
-        if (
-            !loading &&
-            isAuthenticated &&
-            requiredRole &&
-            user?.role !== requiredRole
-        ) {
-            // Redirect to the appropriate dashboard based on role
-            if (user?.role === "jobseeker") {
-                router.push("/dashboard/jobseeker");
-            } else if (user?.role === "company") {
-                router.push("/dashboard/company");
-            } else {
-                router.push("/auth/login");
-            }
-        }
-    }, [loading, isAuthenticated, requiredRole, user, router]);
-
-    // Show loading state
     if (loading) {
         return (
             <div className="container mx-auto p-6 max-w-5xl">
@@ -57,12 +31,9 @@ export function ProtectedRoute({
         );
     }
 
-    // If not authenticated or doesn't have required role, don't render children
-    // (Redirect will happen in useEffect)
     if (!isAuthenticated || (requiredRole && user?.role !== requiredRole)) {
         return null;
     }
 
-    // If authenticated and has the correct role, render children
     return <>{children}</>;
 }

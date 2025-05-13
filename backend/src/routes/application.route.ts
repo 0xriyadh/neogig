@@ -26,10 +26,13 @@ export const applicationRouter = router({
                         description: jobSeekers.description,
                         preferredJobType: jobSeekers.preferredJobType,
                         availableSchedule: jobSeekers.availableSchedule,
-                    }
+                    },
                 })
                 .from(applications)
-                .leftJoin(jobSeekers, eq(applications.jobSeekerId, jobSeekers.userId))
+                .leftJoin(
+                    jobSeekers,
+                    eq(applications.jobSeekerId, jobSeekers.userId)
+                )
                 .where(
                     and(
                         eq(applications.jobId, input.jobId),
@@ -43,7 +46,14 @@ export const applicationRouter = router({
         .input(
             z.object({
                 id: z.string(),
-                status: z.enum(["PENDING", "REVIEWED", "INTERVIEWING", "OFFERED", "WITHDRAWN"]),
+                status: z.enum([
+                    "PENDING",
+                    "REVIEWED",
+                    "INTERVIEWING",
+                    "OFFERED",
+                    "REJECTED",
+                    "WITHDRAWN",
+                ]),
                 response: z.string().optional(),
             })
         )

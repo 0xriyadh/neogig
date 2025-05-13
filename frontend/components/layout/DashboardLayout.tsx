@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { User } from "lucide-react"; // Assuming you might want a user icon later
 import { useAuth } from "@/lib/auth";
 import { useCurrentUser } from "@/lib/hooks/useCurrentUser";
-import { trpc } from "@/lib/trpc";
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -14,6 +14,28 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
     const { logout } = useAuth();
     const { currentUser } = useCurrentUser();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    useEffect(() => {
+        if (!currentUser) {
+            router.push("/auth/login");
+        }
+
+        if (currentUser?.profileCompleted && pathname.includes("/auth")) {
+            if (currentUser?.role === "jobseeker") {
+                router.push("/dashboard/jobseeker");
+            } else if (currentUser?.role === "company") {
+                router.push("/dashboard/company");
+            }
+        } else {
+            if (currentUser?.role === "jobseeker") {
+                router.push("/onboarding/jobseeker");
+            } else if (currentUser?.role === "company") {
+                router.push("/onboarding/company");
+            }
+        }
+    }, [currentUser, router]);
 
     const handleLogout = () => {
         logout();
