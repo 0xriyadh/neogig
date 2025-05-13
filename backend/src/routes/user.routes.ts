@@ -80,7 +80,7 @@ export const userRouter = router({
         }),
 
     // Mutation to update an existing user
-    update: publicProcedure
+    update: protectedProcedure
         .input(updateUserInputSchema) // Validate input using Zod schema
         .mutation(async ({ input }) => {
             try {

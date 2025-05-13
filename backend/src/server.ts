@@ -21,6 +21,21 @@ app.use(
         credentials: true,
     })
 );
+
+// Fix for content-type issue between browsers
+app.use((req, res, next) => {
+    // Check if the content-type has a duplicate value
+    const contentType = req.headers["content-type"];
+    if (
+        contentType &&
+        contentType.includes("application/json, application/json")
+    ) {
+        // Set a consistent content-type
+        req.headers["content-type"] = "application/json";
+    }
+    next();
+});
+
 app.use(express.json());
 
 // Define a type for the user payload in the context
@@ -87,7 +102,6 @@ app.use(
         createContext,
     })
 );
-
 
 app.get("/", (req, res) => {
     logger.info("Root endpoint accessed");
