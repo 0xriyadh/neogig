@@ -43,11 +43,11 @@ export default function CompanyDashboard() {
         );
 
     // Fetch applications for all jobs
-    const { data: applications, isLoading: isApplicationsLoading } =
-        trpc.application.getByJobId.useQuery(
-            { jobId: jobs?.[0]?.id || "" },
-            { enabled: !!jobs?.[0]?.id }
-        );
+    // const { data: applications, isLoading: isApplicationsLoading } =
+    //     trpc.application.getByJobId.useQuery(
+    //         { jobId: jobs?.[0]?.id || "" },
+    //         { enabled: !!jobs?.[0]?.id }
+    //     );
 
     const dashboardContent = (
         <div className="container mx-auto p-6 max-w-5xl">
@@ -138,10 +138,10 @@ export default function CompanyDashboard() {
                                                 <h3 className="font-medium">
                                                     {job.title}
                                                 </h3>
-                                                <p className="text-sm text-muted-foreground">
+                                                {/* <p className="text-sm text-muted-foreground">
                                                     {applications?.length || 0}{" "}
                                                     applicants
-                                                </p>
+                                                </p> */}
                                             </div>
                                             <div className="text-right">
                                                 <span
@@ -210,7 +210,7 @@ export default function CompanyDashboard() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {applications && applications.length > 0 ? (
+                            {/* {applications && applications.length > 0 ? (
                                 <div className="space-y-4">
                                     {applications.map((application) => {
                                         const job = jobs?.find(
@@ -278,7 +278,7 @@ export default function CompanyDashboard() {
                                 <p className="text-center py-4 text-muted-foreground">
                                     No applicants yet
                                 </p>
-                            )}
+                            )} */}
                         </CardContent>
                         <CardFooter>
                             <Button
@@ -297,20 +297,20 @@ export default function CompanyDashboard() {
         </div>
     );
 
-    if (isProfileLoading || isJobsLoading || isApplicationsLoading) {
-        return (
-            <div className="container mx-auto p-6 max-w-5xl">
-                <div className="mb-6 flex justify-between items-center">
-                    <Skeleton className="h-10 w-40" />
-                    <Skeleton className="h-10 w-24" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Skeleton className="h-[300px] w-full" />
-                    <Skeleton className="h-[300px] w-full md:col-span-2" />
-                </div>
-            </div>
-        );
-    }
+    // if (isProfileLoading || isJobsLoading || isApplicationsLoading) {
+    //     return (
+    //         <div className="container mx-auto p-6 max-w-5xl">
+    //             <div className="mb-6 flex justify-between items-center">
+    //                 <Skeleton className="h-10 w-40" />
+    //                 <Skeleton className="h-10 w-24" />
+    //             </div>
+    //             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    //                 <Skeleton className="h-[300px] w-full" />
+    //                 <Skeleton className="h-[300px] w-full md:col-span-2" />
+    //             </div>
+    //         </div>
+    //     );
+    // }
 
     if (profileError) {
         return (

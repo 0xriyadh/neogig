@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchTrpc } from "@/lib/trpc";
+import { fetchTrpc, trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -46,23 +46,27 @@ interface Application {
 
 export function ApplicationList({ jobId }: ApplicationListProps) {
     const queryClient = useQueryClient();
-    const [selectedApplication, setSelectedApplication] = useState<string | null>(null);
+    const [selectedApplication, setSelectedApplication] = useState<
+        string | null
+    >(null);
     const [response, setResponse] = useState("");
 
-    const { data: applications, isLoading } = useQuery({
-        queryKey: ["applications", jobId],
-        queryFn: async () => {
-            const result = await fetchTrpc<Application[]>("application.getByJobId", { jobId });
-            // Transform the data to include schedule compatibility
-            return result.map((app) => ({
-                ...app,
-                scheduleCompatibility: calculateScheduleCompatibility(app.jobSeeker.availability),
-            }));
-        },
-    });
+    const { data: applications, isLoading } =
+        trpc.application.getByJobId.useQuery(
+            {
+                jobId,
+            },
+            {
+                staleTime: 5 * 60 * 1000,
+            }
+        );
 
     const updateStatusMutation = useMutation({
-        mutationFn: async (data: { id: string; status: string; response?: string }) => {
+        mutationFn: async (data: {
+            id: string;
+            status: string;
+            response?: string;
+        }) => {
             return await fetchTrpc<Application>("application.updateStatus", {
                 id: data.id,
                 status: data.status,
@@ -70,7 +74,9 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
             });
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["applications", jobId] });
+            queryClient.invalidateQueries({
+                queryKey: ["applications", jobId],
+            });
             toast.success("Application status updated");
             setSelectedApplication(null);
             setResponse("");
@@ -88,7 +94,10 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
         });
     };
 
-    const handleScheduleCompatibility = (applicationId: string, score: number) => {
+    const handleScheduleCompatibility = (
+        applicationId: string,
+        score: number
+    ) => {
         // TODO: Implement schedule compatibility scoring
         toast.info("Schedule compatibility scoring will be implemented");
     };
@@ -132,13 +141,16 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
 
     return (
         <div className="space-y-6">
-            {applications.map((application: Application) => (
+            {applications?.map((application) => (
                 <Card key={application.id}>
                     <CardHeader>
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
+                            {/* <div className="flex items-center gap-4">
                                 <Avatar>
-                                    <AvatarImage src="" alt={application.jobSeeker.name} />
+                                    <AvatarImage
+                                        src=""
+                                        alt={application.jobSeeker.name}
+                                    />
                                     <AvatarFallback>
                                         {application.jobSeeker.name
                                             .split(" ")
@@ -147,12 +159,17 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
                                     </AvatarFallback>
                                 </Avatar>
                                 <div>
-                                    <CardTitle>{application.jobSeeker.name}</CardTitle>
+                                    <CardTitle>
+                                        {application.jobSeeker.name}
+                                    </CardTitle>
                                     <CardDescription>
-                                        Applied: {new Date(application.appliedAt).toLocaleDateString()}
+                                        Applied:{" "}
+                                        {new Date(
+                                            application.appliedAt
+                                        ).toLocaleDateString()}
                                     </CardDescription>
                                 </div>
-                            </div>
+                            </div> */}
                             <Badge
                                 variant={
                                     application.status === "OFFERED"
@@ -170,7 +187,9 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
                         <div className="space-y-4">
                             {application.coverLetter && (
                                 <div>
-                                    <h4 className="font-medium mb-2">Cover Letter</h4>
+                                    <h4 className="font-medium mb-2">
+                                        Cover Letter
+                                    </h4>
                                     <p className="text-sm text-muted-foreground">
                                         {application.coverLetter}
                                     </p>
@@ -179,25 +198,39 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
 
                             <div>
                                 <h4 className="font-medium mb-2">Skills</h4>
-                                <div className="flex flex-wrap gap-2">
-                                    {application.jobSeeker.skills.map((skill) => (
-                                        <Badge key={skill} variant="secondary">
-                                            {skill}
-                                        </Badge>
-                                    ))}
-                                </div>
+                                {/* <div className="flex flex-wrap gap-2">
+                                    {application.jobSeeker.skills.map(
+                                        (skill) => (
+                                            <Badge
+                                                key={skill}
+                                                variant="secondary"
+                                            >
+                                                {skill}
+                                            </Badge>
+                                        )
+                                    )}
+                                </div> */}
                             </div>
 
                             <div>
-                                <h4 className="font-medium mb-2">Availability</h4>
-                                <p className="text-sm text-muted-foreground">
-                                    {new Date(application.jobSeeker.availability.startDate).toLocaleDateString()} to{" "}
-                                    {new Date(application.jobSeeker.availability.endDate).toLocaleDateString()}
+                                <h4 className="font-medium mb-2">
+                                    Availability
+                                </h4>
+                                {/* <p className="text-sm text-muted-foreground">
+                                    {new Date(
+                                        application.jobSeeker.availability.startDate
+                                    ).toLocaleDateString()}{" "}
+                                    to{" "}
+                                    {new Date(
+                                        application.jobSeeker.availability.endDate
+                                    ).toLocaleDateString()}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
                                     Preferred Hours:{" "}
-                                    {application.jobSeeker.availability.preferredHours.join(", ")}
-                                </p>
+                                    {application.jobSeeker.availability.preferredHours.join(
+                                        ", "
+                                    )}
+                                </p> */}
                             </div>
 
                             {selectedApplication === application.id && (
@@ -205,25 +238,35 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
                                     <Textarea
                                         placeholder="Enter your response to the candidate..."
                                         value={response}
-                                        onChange={(e) => setResponse(e.target.value)}
+                                        onChange={(e) =>
+                                            setResponse(e.target.value)
+                                        }
                                     />
                                     <div className="flex gap-2">
                                         <Button
                                             variant="outline"
-                                            onClick={() => setSelectedApplication(null)}
+                                            onClick={() =>
+                                                setSelectedApplication(null)
+                                            }
                                         >
                                             Cancel
                                         </Button>
                                         <Button
                                             onClick={() =>
-                                                handleStatusChange(application.id, "REVIEWED")
+                                                handleStatusChange(
+                                                    application.id,
+                                                    "REVIEWED"
+                                                )
                                             }
                                         >
                                             Review
                                         </Button>
                                         <Button
                                             onClick={() =>
-                                                handleStatusChange(application.id, "INTERVIEWING")
+                                                handleStatusChange(
+                                                    application.id,
+                                                    "INTERVIEWING"
+                                                )
                                             }
                                         >
                                             Interview
@@ -231,7 +274,10 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
                                         <Button
                                             variant="destructive"
                                             onClick={() =>
-                                                handleStatusChange(application.id, "WITHDRAWN")
+                                                handleStatusChange(
+                                                    application.id,
+                                                    "WITHDRAWN"
+                                                )
                                             }
                                         >
                                             Reject
@@ -244,14 +290,21 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
                                 <div className="flex gap-2">
                                     <Button
                                         variant="outline"
-                                        onClick={() => setSelectedApplication(application.id)}
+                                        onClick={() =>
+                                            setSelectedApplication(
+                                                application.id
+                                            )
+                                        }
                                     >
                                         Respond
                                     </Button>
                                     <Button
                                         variant="outline"
                                         onClick={() =>
-                                            handleScheduleCompatibility(application.id, 0)
+                                            handleScheduleCompatibility(
+                                                application.id,
+                                                0
+                                            )
                                         }
                                     >
                                         Update Schedule Compatibility
@@ -267,8 +320,10 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
 }
 
 // Helper function to calculate schedule compatibility
-function calculateScheduleCompatibility(availability: JobSeeker["availability"]): number {
+function calculateScheduleCompatibility(
+    availability: JobSeeker["availability"]
+): number {
     // TODO: Implement actual schedule compatibility calculation
     // This is a placeholder that returns a random score
     return Math.floor(Math.random() * 100);
-} 
+}

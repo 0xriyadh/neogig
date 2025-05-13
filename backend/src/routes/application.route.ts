@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { eq, and, not } from "drizzle-orm";
 import { applications } from "../db/schema/application";
 import { db } from "../db";
+import { type Context } from "../server";
 
 export const applicationRouter = router({
     getByJobId: protectedProcedure
@@ -15,7 +16,6 @@ export const applicationRouter = router({
                 .where(
                     and(
                         eq(applications.jobId, input.jobId),
-                        eq(applications.jobSeekerId, ctx.user.id),
                         not(eq(applications.status, "WITHDRAWN"))
                     )
                 );

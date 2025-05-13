@@ -69,7 +69,7 @@ export async function fetchTrpc<T>(path: string, input?: any): Promise<T> {
                 data.error?.message ||
                 data.error ||
                 `Error performing ${path} mutation: ${response.status}`;
-            console.error("Error details:", data);
+            console.log("Error details:", data);
             throw new Error(errorMsg);
         }
 
@@ -107,7 +107,7 @@ export async function fetchTrpc<T>(path: string, input?: any): Promise<T> {
                 data.error?.message ||
                 data.error ||
                 `Error fetching data from ${path}: ${response.status}`;
-            console.error("Error details:", data);
+            console.log("Error details:", data);
             throw new Error(errorMsg);
         }
 
