@@ -14,6 +14,8 @@ import { JobActions } from "./job-actions";
 import { JobQuestionForm } from "./job-question-form";
 import { QuickInterestForm } from "./quick-interest-form";
 import { use } from "react";
+import { useCurrentUser } from "@/lib/hooks/useCurrentUser";
+import { Progress } from "@/components/ui/progress";
 
 interface JobPageProps {
     params: Promise<{
@@ -21,9 +23,17 @@ interface JobPageProps {
     }>;
 }
 
+interface FitScoreResult {
+    score: number;
+    matchedSkills: number;
+    totalRequired: number;
+    userSkills: string[];
+}
+
 export default function JobPage({ params }: JobPageProps) {
     const { id } = use(params);
     const jobData = trpc.job.getById.useQuery({ id: id });
+    const { currentUser } = useCurrentUser();
 
     const companyData = trpc.company.getById.useQuery(
         {
@@ -33,6 +43,52 @@ export default function JobPage({ params }: JobPageProps) {
             enabled: !!jobData.data?.companyId, // Only run this query when we have a companyId
         }
     );
+
+    // Calculate fit score based on skills match
+    const calculateFitScore = (): FitScoreResult | null => {
+        if (
+            !jobData.data?.requiredSkills ||
+            !currentUser ||
+            currentUser.role !== "jobseeker"
+        ) {
+            return null;
+        }
+
+        // Safe type check for jobseeker profile with skills
+        const jobseekerProfile = currentUser.profile as
+            | { skills?: string }
+            | undefined;
+        if (!jobseekerProfile?.skills) {
+            return null;
+        }
+
+        const jobSkills = jobData.data.requiredSkills;
+        const userSkills = jobseekerProfile.skills
+            .split(",")
+            .map((skill: string) => skill.trim());
+
+        let matchedSkills = 0;
+        jobSkills.forEach((jobSkill) => {
+            if (
+                userSkills.some(
+                    (userSkill: string) =>
+                        userSkill.toLowerCase() === jobSkill.toLowerCase()
+                )
+            ) {
+                matchedSkills++;
+            }
+        });
+
+        const score = Math.round((matchedSkills / jobSkills.length) * 100);
+        return {
+            score,
+            matchedSkills,
+            totalRequired: jobSkills.length,
+            userSkills,
+        };
+    };
+
+    const fitScore = calculateFitScore();
 
     if (jobData.isLoading) {
         return <div>Loading job details...</div>;
@@ -110,6 +166,27 @@ export default function JobPage({ params }: JobPageProps) {
                                     </div>
                                 )}
                             </div>
+
+                            {fitScore && currentUser?.role === "jobseeker" && (
+                                <div className="mt-2 border rounded-lg p-4 bg-muted/30">
+                                    <h3 className="text-md font-medium mb-2">
+                                        Your Fit Score
+                                    </h3>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Progress
+                                            value={fitScore.score}
+                                            className="h-2"
+                                        />
+                                        <span className="font-semibold">
+                                            {fitScore.score}%
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">
+                                        You match {fitScore.matchedSkills} of{" "}
+                                        {fitScore.totalRequired} required skills
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </CardHeader>
 
@@ -151,6 +228,19 @@ export default function JobPage({ params }: JobPageProps) {
                                                             <Badge
                                                                 key={index}
                                                                 variant="outline"
+                                                                className={
+                                                                    currentUser?.role ===
+                                                                        "jobseeker" &&
+                                                                    fitScore?.userSkills.some(
+                                                                        (
+                                                                            s: string
+                                                                        ) =>
+                                                                            s.toLowerCase() ===
+                                                                            skill.toLowerCase()
+                                                                    )
+                                                                        ? "bg-emerald-100 border-emerald-300"
+                                                                        : ""
+                                                                }
                                                             >
                                                                 {skill}
                                                             </Badge>
