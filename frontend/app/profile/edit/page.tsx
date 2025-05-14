@@ -67,6 +67,16 @@ const commonSkills = [
     "Kubernetes",
 ];
 
+const allWeekDays = [
+    "saturday",
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+];
+
 const profileFormSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     address: z.string().min(5, "Address must be at least 5 characters"),
@@ -104,6 +114,7 @@ export default function EditProfilePage() {
         sunday: { start: "09:00", end: "17:00" },
         monday: { start: "09:00", end: "17:00" },
         tuesday: { start: "09:00", end: "17:00" },
+        wednesday: { start: "09:00", end: "17:00" },
         thursday: { start: "09:00", end: "17:00" },
         friday: { start: "09:00", end: "17:00" },
     };
@@ -340,22 +351,26 @@ export default function EditProfilePage() {
                             <FormItem>
                                 <FormLabel>Available Schedule</FormLabel>
                                 <div className="space-y-4">
-                                    {Object.entries(field.value).map(
-                                        ([day, schedule]) => (
+                                    {allWeekDays.map((day) => {
+                                        const currentDaySchedule =
+                                            field.value[day];
+                                        return (
                                             <div
                                                 key={day}
                                                 className="flex items-center gap-4"
                                             >
                                                 <div className="flex items-center space-x-2">
                                                     <Switch
-                                                        checked={true}
+                                                        checked={
+                                                            !!currentDaySchedule
+                                                        }
                                                         onCheckedChange={() => {
                                                             const newSchedule =
                                                                 {
                                                                     ...field.value,
                                                                 };
                                                             if (
-                                                                newSchedule[day]
+                                                                currentDaySchedule
                                                             ) {
                                                                 delete newSchedule[
                                                                     day
@@ -379,7 +394,12 @@ export default function EditProfilePage() {
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <Select
-                                                        value={schedule.start}
+                                                        value={
+                                                            currentDaySchedule?.start
+                                                        }
+                                                        disabled={
+                                                            !currentDaySchedule
+                                                        }
                                                         onValueChange={(
                                                             value
                                                         ) => {
@@ -388,7 +408,7 @@ export default function EditProfilePage() {
                                                                     ...field.value,
                                                                 };
                                                             newSchedule[day] = {
-                                                                ...schedule,
+                                                                ...(currentDaySchedule as TimeSlot),
                                                                 start: value,
                                                             };
                                                             field.onChange(
@@ -416,7 +436,12 @@ export default function EditProfilePage() {
                                                     </Select>
                                                     <span>to</span>
                                                     <Select
-                                                        value={schedule.end}
+                                                        value={
+                                                            currentDaySchedule?.end
+                                                        }
+                                                        disabled={
+                                                            !currentDaySchedule
+                                                        }
                                                         onValueChange={(
                                                             value
                                                         ) => {
@@ -425,7 +450,7 @@ export default function EditProfilePage() {
                                                                     ...field.value,
                                                                 };
                                                             newSchedule[day] = {
-                                                                ...schedule,
+                                                                ...(currentDaySchedule as TimeSlot),
                                                                 end: value,
                                                             };
                                                             field.onChange(
@@ -453,8 +478,8 @@ export default function EditProfilePage() {
                                                     </Select>
                                                 </div>
                                             </div>
-                                        )
-                                    )}
+                                        );
+                                    })}
                                 </div>
                                 <FormMessage />
                             </FormItem>
