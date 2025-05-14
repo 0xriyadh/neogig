@@ -2,16 +2,16 @@ export type JobType = "REMOTE" | "ONSITE" | "HYBRID";
 export type ExperienceLevel = "ENTRY" | "MID" | "SENIOR";
 export type JobContractType = "PART_TIME" | "CONTRACT";
 
-interface TimeSlot {
+export interface TimeSlot {
     start: string;
     end: string;
 }
 
-interface Schedule {
+export interface Schedule {
     [key: string]: TimeSlot;
 }
 
-interface Job {
+export interface Job {
     id: string;
     companyId: string;
     title: string;
