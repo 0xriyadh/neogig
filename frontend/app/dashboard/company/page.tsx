@@ -20,7 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ApplicationList } from "@/components/applications/application-list";
 import { RecentApplicants } from "@/components/applications/recent-applicants";
 import { trpc } from "@/lib/trpc";
-import { Eye } from "lucide-react";
+import { Car, Eye } from "lucide-react";
 
 export default function CompanyDashboard() {
     const router = useRouter();
@@ -216,10 +216,28 @@ export default function CompanyDashboard() {
                         </CardContent>
                     </Card>
 
-                    {/* Recent Applicants */}
-                    {jobs && jobs.length > 0 && (
-                        <RecentApplicants jobId={jobs[0].id} />
-                    )}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Recent Applicants</CardTitle>
+                            <CardDescription>
+                                Track candidates for your job listings
+                            </CardDescription>
+                        </CardHeader>
+                        {jobs?.map((job) => (
+                            <RecentApplicants jobId={job.id} />
+                        ))}
+                        <CardFooter>
+                            <Button
+                                variant="outline"
+                                className="w-full"
+                                asChild
+                            >
+                                <Link href="/dashboard/company/applicants">
+                                    View All Applicants
+                                </Link>
+                            </Button>
+                        </CardFooter>
+                    </Card>
                 </div>
             </div>
         </div>
