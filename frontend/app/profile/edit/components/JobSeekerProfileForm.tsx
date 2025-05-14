@@ -150,7 +150,7 @@ export default function JobSeekerProfileForm({
     });
 
     const { mutate: updateProfile, isPending: isUpdating } =
-        trpc.user.updateJobSeekerProfile.useMutation({
+        trpc.jobSeeker.update.useMutation({
             onSuccess: () => {
                 toast.success("Profile updated successfully");
                 utils.user.getMe.invalidate();
@@ -163,12 +163,10 @@ export default function JobSeekerProfileForm({
 
     function onSubmit(data: ProfileFormValues) {
         updateProfile({
-            id: jobSeeker.id,
-            profile: {
-                ...data,
-                availableSchedule: JSON.stringify(data.availableSchedule),
-                skills: data.skills.join(", "),
-            },
+            userId: jobSeeker.id,
+            ...data,
+            availableSchedule: JSON.stringify(data.availableSchedule),
+            skills: data.skills.join(", "),
         });
     }
 
