@@ -15,6 +15,17 @@ export function ProtectedRoute({
     requiredRole,
 }: ProtectedRouteProps) {
     const { user, loading, isAuthenticated } = useAuth();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (loading) {
+            return;
+        }
+
+        if (!isAuthenticated || (requiredRole && user?.role !== requiredRole)) {
+            router.push("/auth/login");
+        }
+    }, [loading, isAuthenticated, requiredRole, user, router]);
 
     if (loading) {
         return (
@@ -29,10 +40,6 @@ export function ProtectedRoute({
                 </div>
             </div>
         );
-    }
-
-    if (!isAuthenticated || (requiredRole && user?.role !== requiredRole)) {
-        return null;
     }
 
     return <>{children}</>;

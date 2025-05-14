@@ -13,14 +13,14 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
     const { logout } = useAuth();
-    const { currentUser } = useCurrentUser();
+    const { currentUser, isLoading } = useCurrentUser();
     const router = useRouter();
     const pathname = usePathname();
 
     useEffect(() => {
-        if (!currentUser) {
-            router.push("/auth/login");
-        }
+        if (isLoading) return;
+
+        console.log("currentUser456456", currentUser, "isLoading", isLoading);
 
         if (currentUser?.profileCompleted && pathname.includes("/auth")) {
             if (currentUser?.role === "jobseeker") {
@@ -28,7 +28,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             } else if (currentUser?.role === "company") {
                 router.push("/dashboard/company");
             }
-        } else {
+        } else if (currentUser && !currentUser?.profileCompleted) {
             if (currentUser?.role === "jobseeker") {
                 router.push("/onboarding/jobseeker");
             } else if (currentUser?.role === "company") {

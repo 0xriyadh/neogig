@@ -59,6 +59,6 @@ export const useCurrentUser = () => {
     return {
         ...query,
         currentUser: currentUser,
-        loading: query.isLoading,
+        loading: query.isFetching || query.isLoading,
     };
 };
