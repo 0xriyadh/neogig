@@ -132,7 +132,7 @@ export default function EditJobPage() {
             salaryMin: 0,
             salaryMax: 0,
             jobType: "REMOTE" as JobType,
-            probableSchedule: defaultSchedule,
+            probableSchedule: {},
             jobContractType: "PART_TIME" as JobContractType,
             experienceLevel: "ENTRY" as ExperienceLevel,
             minimumWeeklyHourCommitment: 0,
@@ -151,9 +151,7 @@ export default function EditJobPage() {
                 salaryMin: jobData.salaryMin || 0,
                 salaryMax: jobData.salaryMax || 0,
                 jobType: jobData.jobType || "REMOTE",
-                probableSchedule: jobData.probableSchedule
-                    ? Object(jobData.probableSchedule)
-                    : defaultSchedule,
+                probableSchedule: Object(jobData.probableSchedule) || {},
                 jobContractType: jobData.jobContractType,
                 experienceLevel: jobData.experienceLevel || "ENTRY",
                 minimumWeeklyHourCommitment:
@@ -217,10 +215,11 @@ export default function EditJobPage() {
     }
 
     function onSubmit(data: JobFormValues) {
-        console.log(data);
+        console.log("345", data);
         updateJob({
             id: jobId,
             ...data,
+            probableSchedule: JSON.stringify(data.probableSchedule),
         });
     }
 
