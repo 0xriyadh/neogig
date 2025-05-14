@@ -123,7 +123,7 @@ export default function EditProfilePage() {
                     | "ONSITE"
                     | "HYBRID") || "REMOTE",
             availableSchedule: jobSeeker?.profile?.availableSchedule
-                ? JSON.parse(jobSeeker.profile.availableSchedule)
+                ? Object(jobSeeker.profile.availableSchedule)
                 : defaultSchedule,
             skills: jobSeeker?.profile?.skills
                 ? jobSeeker.profile.skills.split(", ")
