@@ -74,23 +74,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.setItem("userData", JSON.stringify(apiUser));
 
             setUser(apiUser);
-
-            console.log("apiUserfg", apiUser);
-
-            if (!apiUser.profileCompleted) {
-                if (apiUser.role === "jobseeker") {
-                    router.push("/onboarding/jobseeker");
-                } else if (apiUser.role === "company") {
-                    router.push("/onboarding/company");
-                }
-            }
-
-            // Redirect based on user role
-            if (apiUser.role === "jobseeker") {
-                router.push("/dashboard/jobseeker");
-            } else if (apiUser.role === "company") {
-                router.push("/dashboard/company");
-            }
         } catch (error) {
             console.error("Login error:", error);
             throw error;
