@@ -1,11 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { fetchTrpc } from "@/lib/trpc";
-import { useAuth } from "@/lib/auth";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
 import { Button } from "@/components/ui/button";
@@ -25,7 +21,7 @@ import { JobSeeker, JobApplication, SavedJob } from "@/types/user-types";
 
 export default function JobSeekerDashboard() {
     const { currentUser, isLoading, error } = useCurrentUser();
-
+    const router = useRouter();
     const jobSeeker =
         currentUser?.role === "jobseeker" ? (currentUser as JobSeeker) : null;
 
@@ -173,7 +169,12 @@ export default function JobSeekerDashboard() {
                                         (savedJob: SavedJob) => (
                                             <div
                                                 key={savedJob.id}
-                                                className="flex justify-between items-center border-b pb-3"
+                                                className="flex justify-between items-center border-b pb-3 cursor-pointer"
+                                                onClick={() => {
+                                                    router.push(
+                                                        `/jobs/${savedJob.job.id}`
+                                                    );
+                                                }}
                                             >
                                                 <div>
                                                     <h3 className="font-medium">

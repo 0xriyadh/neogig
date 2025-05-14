@@ -142,7 +142,7 @@ export const userRouter = router({
     updateJobSeekerProfile: protectedProcedure
         .input(updateJobSeekerProfileSchema)
         .mutation(async ({ ctx, input }) => {
-            if (ctx.user.role !== "JOBSEEKER") {
+            if (ctx.user.role !== "jobseeker") {
                 throw new Error("Only jobseekers can update their profile");
             }
 
