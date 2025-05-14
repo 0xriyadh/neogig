@@ -27,6 +27,8 @@ interface TimeSlot {
 }
 
 interface AvailableSchedule {
+    saturday: TimeSlot;
+    sunday: TimeSlot;
     monday: TimeSlot;
     tuesday: TimeSlot;
     wednesday: TimeSlot;
@@ -108,13 +110,16 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
         applicationId: string,
         score: number
     ) => {
-        const application = applications?.find(app => app.id === applicationId);
+        const application = applications?.find(
+            (app) => app.id === applicationId
+        );
         if (!application?.jobSeeker?.availableSchedule) {
             toast.error("No availability information found for this candidate");
             return;
         }
 
-        const schedule = application.jobSeeker.availableSchedule as AvailableSchedule;
+        const schedule = application.jobSeeker
+            .availableSchedule as AvailableSchedule;
         const compatibilityScore = calculateScheduleCompatibility(schedule);
         toast.success(`Schedule compatibility score: ${compatibilityScore}%`);
     };
@@ -166,7 +171,10 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
                                 <Avatar>
                                     <AvatarImage
                                         src=""
-                                        alt={application.jobSeeker?.name ?? "Unknown"}
+                                        alt={
+                                            application.jobSeeker?.name ??
+                                            "Unknown"
+                                        }
                                     />
                                     <AvatarFallback>
                                         {application.jobSeeker?.name
@@ -177,7 +185,8 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
                                 </Avatar>
                                 <div>
                                     <CardTitle>
-                                        {application.jobSeeker?.name ?? "Unknown"}
+                                        {application.jobSeeker?.name ??
+                                            "Unknown"}
                                     </CardTitle>
                                     <CardDescription>
                                         Applied:{" "}
@@ -221,9 +230,13 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
                                             {application.jobSeeker.description}
                                         </Badge>
                                     )}
-                                    {application.jobSeeker?.preferredJobType && (
+                                    {application.jobSeeker
+                                        ?.preferredJobType && (
                                         <Badge variant="secondary">
-                                            {application.jobSeeker.preferredJobType}
+                                            {
+                                                application.jobSeeker
+                                                    .preferredJobType
+                                            }
                                         </Badge>
                                     )}
                                 </div>
@@ -235,9 +248,18 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
                                 </h4>
                                 {application.jobSeeker?.availableSchedule ? (
                                     <div className="space-y-2">
-                                        {Object.entries(application.jobSeeker.availableSchedule).map(([day, schedule]) => (
-                                            <p key={day} className="text-sm text-muted-foreground">
-                                                {day.charAt(0).toUpperCase() + day.slice(1)}: {schedule.start} - {schedule.end}
+                                        {Object.entries(
+                                            application.jobSeeker
+                                                .availableSchedule
+                                        ).map(([day, schedule]) => (
+                                            <p
+                                                key={day}
+                                                className="text-sm text-muted-foreground"
+                                            >
+                                                {day.charAt(0).toUpperCase() +
+                                                    day.slice(1)}
+                                                : {schedule.start} -{" "}
+                                                {schedule.end}
                                             </p>
                                         ))}
                                     </div>
@@ -334,14 +356,24 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
     );
 }
 
-const calculateScheduleCompatibility = (schedule: AvailableSchedule): number => {
+const calculateScheduleCompatibility = (
+    schedule: AvailableSchedule
+): number => {
     const standardHours = {
         start: "09:00",
-        end: "17:00"
+        end: "17:00",
     };
 
     let totalOverlap = 0;
-    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as const;
+    const days = [
+        "saturday",
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+    ] as const;
 
     for (const day of days) {
         const daySchedule = schedule[day];
@@ -352,11 +384,17 @@ const calculateScheduleCompatibility = (schedule: AvailableSchedule): number => 
         const availableStart = new Date(`2000-01-01T${daySchedule.start}`);
         const availableEnd = new Date(`2000-01-01T${daySchedule.end}`);
 
-        const overlapStart = new Date(Math.max(standardStart.getTime(), availableStart.getTime()));
-        const overlapEnd = new Date(Math.min(standardEnd.getTime(), availableEnd.getTime()));
+        const overlapStart = new Date(
+            Math.max(standardStart.getTime(), availableStart.getTime())
+        );
+        const overlapEnd = new Date(
+            Math.min(standardEnd.getTime(), availableEnd.getTime())
+        );
 
         if (overlapEnd > overlapStart) {
-            const overlapHours = (overlapEnd.getTime() - overlapStart.getTime()) / (1000 * 60 * 60);
+            const overlapHours =
+                (overlapEnd.getTime() - overlapStart.getTime()) /
+                (1000 * 60 * 60);
             totalOverlap += overlapHours;
         }
     }
@@ -364,4 +402,4 @@ const calculateScheduleCompatibility = (schedule: AvailableSchedule): number => 
     // Calculate percentage of overlap with standard 40-hour work week
     const standardWorkWeek = 8 * 5; // 8 hours * 5 days
     return Math.round((totalOverlap / standardWorkWeek) * 100);
-}; 
+};
