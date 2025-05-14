@@ -72,6 +72,8 @@ async function seed() {
             description: "Experienced software developer",
             preferredJobType: "HYBRID",
             availableSchedule: {
+                saturday: { start: "09:00", end: "17:00" },
+                sunday: { start: "09:00", end: "17:00" },
                 monday: { start: "09:00", end: "17:00" },
                 tuesday: { start: "09:00", end: "17:00" },
                 wednesday: { start: "09:00", end: "17:00" },
@@ -261,6 +263,8 @@ async function seed() {
                     "HYBRID",
                 ]),
                 availableSchedule: {
+                    saturday: { start: "09:00", end: "17:00" },
+                    sunday: { start: "09:00", end: "17:00" },
                     monday: { start: "09:00", end: "17:00" },
                     tuesday: { start: "09:00", end: "17:00" },
                     wednesday: { start: "09:00", end: "17:00" },

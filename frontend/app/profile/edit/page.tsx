@@ -100,9 +100,10 @@ export default function EditProfilePage() {
         currentUser?.role === "jobseeker" ? (currentUser as JobSeeker) : null;
 
     const defaultSchedule: AvailableSchedule = {
+        saturday: { start: "09:00", end: "17:00" },
+        sunday: { start: "09:00", end: "17:00" },
         monday: { start: "09:00", end: "17:00" },
         tuesday: { start: "09:00", end: "17:00" },
-        wednesday: { start: "09:00", end: "17:00" },
         thursday: { start: "09:00", end: "17:00" },
         friday: { start: "09:00", end: "17:00" },
     };

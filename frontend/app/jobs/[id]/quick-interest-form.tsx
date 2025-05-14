@@ -9,10 +9,26 @@ import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+} from "@/components/ui/command";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +62,8 @@ const commonSkills = [
 export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [availableDays, setAvailableDays] = useState<AvailableSchedule>({
+        saturday: { start: "09:00", end: "17:00" },
+        sunday: { start: "09:00", end: "17:00" },
         monday: { start: "09:00", end: "17:00" },
         tuesday: { start: "09:00", end: "17:00" },
         wednesday: { start: "09:00", end: "17:00" },
@@ -58,8 +76,8 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
         wednesday: true,
         thursday: true,
         friday: true,
-        saturday: false,
-        sunday: false,
+        saturday: true,
+        sunday: true,
     });
     const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
     const [openSkills, setOpenSkills] = useState(false);
@@ -87,12 +105,15 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
         setIsSubmitting(true);
 
         // Filter out disabled days and format the schedule
-        const filteredSchedule = Object.entries(availableDays).reduce((acc, [day, schedule]) => {
-            if (enabledDays[day]) {
-                acc[day] = schedule;
-            }
-            return acc;
-        }, {} as AvailableSchedule);
+        const filteredSchedule = Object.entries(availableDays).reduce(
+            (acc, [day, schedule]) => {
+                if (enabledDays[day]) {
+                    acc[day] = schedule;
+                }
+                return acc;
+            },
+            {} as AvailableSchedule
+        );
 
         try {
             await submitInterest.mutateAsync({
@@ -108,20 +129,24 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
         }
     }
 
-    const handleTimeChange = (day: string, type: 'start' | 'end', value: string) => {
-        setAvailableDays(prev => ({
+    const handleTimeChange = (
+        day: string,
+        type: "start" | "end",
+        value: string
+    ) => {
+        setAvailableDays((prev) => ({
             ...prev,
             [day]: {
                 ...prev[day],
-                [type]: value
-            }
+                [type]: value,
+            },
         }));
     };
 
     const handleDayToggle = (day: string) => {
-        setEnabledDays(prev => ({
+        setEnabledDays((prev) => ({
             ...prev,
-            [day]: !prev[day]
+            [day]: !prev[day],
         }));
     };
 
@@ -129,7 +154,9 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
         const times = [];
         for (let hour = 0; hour < 24; hour++) {
             for (let minute = 0; minute < 60; minute += 30) {
-                const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                const time = `${hour.toString().padStart(2, "0")}:${minute
+                    .toString()
+                    .padStart(2, "0")}`;
                 times.push(time);
             }
         }
@@ -148,53 +175,100 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
                     <div className="space-y-4">
                         <Label>Your Availability</Label>
                         <div className="space-y-4">
-                            {Object.entries(availableDays).map(([day, schedule]) => (
-                                <div key={day} className="flex items-center gap-4">
-                                    <div className="flex items-center space-x-2">
-                                        <Switch
-                                            checked={enabledDays[day]}
-                                            onCheckedChange={() => handleDayToggle(day)}
-                                            disabled={isSubmitting || isApplicationsLoading || (applications && applications?.length > 0)}
-                                        />
-                                        <Label className="capitalize min-w-[100px]">{day}</Label>
+                            {Object.entries(availableDays).map(
+                                ([day, schedule]) => (
+                                    <div
+                                        key={day}
+                                        className="flex items-center gap-4"
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <Switch
+                                                checked={enabledDays[day]}
+                                                onCheckedChange={() =>
+                                                    handleDayToggle(day)
+                                                }
+                                                disabled={
+                                                    isSubmitting ||
+                                                    isApplicationsLoading ||
+                                                    (applications &&
+                                                        applications?.length >
+                                                            0)
+                                                }
+                                            />
+                                            <Label className="capitalize min-w-[100px]">
+                                                {day}
+                                            </Label>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Select
+                                                value={schedule.start}
+                                                onValueChange={(value) =>
+                                                    handleTimeChange(
+                                                        day,
+                                                        "start",
+                                                        value
+                                                    )
+                                                }
+                                                disabled={
+                                                    !enabledDays[day] ||
+                                                    isSubmitting ||
+                                                    isApplicationsLoading ||
+                                                    (applications &&
+                                                        applications?.length >
+                                                            0)
+                                                }
+                                            >
+                                                <SelectTrigger className="w-[120px]">
+                                                    <SelectValue placeholder="Start time" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {timeOptions.map((time) => (
+                                                        <SelectItem
+                                                            key={`${day}-start-${time}`}
+                                                            value={time}
+                                                        >
+                                                            {time}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <span>to</span>
+                                            <Select
+                                                value={schedule.end}
+                                                onValueChange={(value) =>
+                                                    handleTimeChange(
+                                                        day,
+                                                        "end",
+                                                        value
+                                                    )
+                                                }
+                                                disabled={
+                                                    !enabledDays[day] ||
+                                                    isSubmitting ||
+                                                    isApplicationsLoading ||
+                                                    (applications &&
+                                                        applications?.length >
+                                                            0)
+                                                }
+                                            >
+                                                <SelectTrigger className="w-[120px]">
+                                                    <SelectValue placeholder="End time" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {timeOptions.map((time) => (
+                                                        <SelectItem
+                                                            key={`${day}-end-${time}`}
+                                                            value={time}
+                                                        >
+                                                            {time}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <Select
-                                            value={schedule.start}
-                                            onValueChange={(value) => handleTimeChange(day, 'start', value)}
-                                            disabled={!enabledDays[day] || isSubmitting || isApplicationsLoading || (applications && applications?.length > 0)}
-                                        >
-                                            <SelectTrigger className="w-[120px]">
-                                                <SelectValue placeholder="Start time" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {timeOptions.map((time) => (
-                                                    <SelectItem key={`${day}-start-${time}`} value={time}>
-                                                        {time}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <span>to</span>
-                                        <Select
-                                            value={schedule.end}
-                                            onValueChange={(value) => handleTimeChange(day, 'end', value)}
-                                            disabled={!enabledDays[day] || isSubmitting || isApplicationsLoading || (applications && applications?.length > 0)}
-                                        >
-                                            <SelectTrigger className="w-[120px]">
-                                                <SelectValue placeholder="End time" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {timeOptions.map((time) => (
-                                                    <SelectItem key={`${day}-end-${time}`} value={time}>
-                                                        {time}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-                            ))}
+                                )
+                            )}
                         </div>
                     </div>
                     <div className="space-y-2">
@@ -206,7 +280,12 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
                                     role="combobox"
                                     aria-expanded={openSkills}
                                     className="w-full justify-between"
-                                    disabled={isSubmitting || isApplicationsLoading || (applications && applications?.length > 0)}
+                                    disabled={
+                                        isSubmitting ||
+                                        isApplicationsLoading ||
+                                        (applications &&
+                                            applications?.length > 0)
+                                    }
                                 >
                                     {selectedSkills.length > 0
                                         ? `${selectedSkills.length} skills selected`
@@ -217,24 +296,43 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
                             <PopoverContent className="w-full p-0">
                                 <Command>
                                     <CommandInput placeholder="Search skills..." />
-                                    <CommandEmpty>No skills found.</CommandEmpty>
+                                    <CommandEmpty>
+                                        No skills found.
+                                    </CommandEmpty>
                                     <CommandGroup>
                                         {commonSkills.map((skill) => (
                                             <CommandItem
                                                 key={skill}
                                                 onSelect={() => {
-                                                    setSelectedSkills((prev) => {
-                                                        if (prev.includes(skill)) {
-                                                            return prev.filter((s) => s !== skill);
+                                                    setSelectedSkills(
+                                                        (prev) => {
+                                                            if (
+                                                                prev.includes(
+                                                                    skill
+                                                                )
+                                                            ) {
+                                                                return prev.filter(
+                                                                    (s) =>
+                                                                        s !==
+                                                                        skill
+                                                                );
+                                                            }
+                                                            return [
+                                                                ...prev,
+                                                                skill,
+                                                            ];
                                                         }
-                                                        return [...prev, skill];
-                                                    });
+                                                    );
                                                 }}
                                             >
                                                 <Check
                                                     className={cn(
                                                         "mr-2 h-4 w-4",
-                                                        selectedSkills.includes(skill) ? "opacity-100" : "opacity-0"
+                                                        selectedSkills.includes(
+                                                            skill
+                                                        )
+                                                            ? "opacity-100"
+                                                            : "opacity-0"
                                                     )}
                                                 />
                                                 {skill}
