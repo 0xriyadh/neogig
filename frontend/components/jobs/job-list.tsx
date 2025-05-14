@@ -129,7 +129,7 @@ export function JobList() {
                 if (selectedSkills.length > 0 && job.requiredSkills) {
                     const jobSkills = Array.isArray(job.requiredSkills)
                         ? job.requiredSkills.map((skill) => skill.toLowerCase())
-                        : job.requiredSkills
+                        : (job.requiredSkills as string)
                               .split(",")
                               .map((s: string) => s.trim().toLowerCase());
 
