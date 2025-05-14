@@ -99,7 +99,12 @@ export default function JobSeekerDashboard() {
                                         (app: JobApplication) => (
                                             <div
                                                 key={app.id}
-                                                className="flex justify-between items-center border-b pb-3"
+                                                className="flex justify-between items-center border-b pb-3 cursor-pointer"
+                                                onClick={() =>
+                                                    router.push(
+                                                        `/jobs/${app.job.id}`
+                                                    )
+                                                }
                                             >
                                                 <div>
                                                     <h3 className="font-medium">
