@@ -15,6 +15,7 @@ export const jobResponseSchema = z.object({
     salaryMin: z.number().int().nullish(),
     salaryMax: z.number().int().nullish(),
     jobType: z.enum(jobTypeEnum.enumValues).nullish(),
+    probableSchedule: z.object({}).nullish(),
     jobContractType: z.enum(jobContractTypeEnum.enumValues),
     experienceLevel: z.enum(experienceLevelEnum.enumValues).nullish(),
     isActive: z.boolean(),

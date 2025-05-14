@@ -7,6 +7,7 @@ import {
     pgEnum,
     boolean,
     timestamp,
+    json,
 } from "drizzle-orm/pg-core";
 import { companies } from "./company";
 
@@ -38,6 +39,7 @@ export const jobs = pgTable("jobs", {
     salaryMax: integer("salary_max"),
     jobType: jobTypeEnum("job_type"),
     jobContractType: jobContractTypeEnum("job_contract_type").notNull(),
+    probableSchedule: json("probable_schedule"),
     experienceLevel: experienceLevelEnum("experience_level"),
     minimumWeeklyHourCommitment: integer("minimum_weekly_hour_commitment"),
     requiredSkills: text("required_skills").array(),

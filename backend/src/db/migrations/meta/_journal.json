@@ -64,6 +64,20 @@
       "when": 1747175942379,
       "tag": "0008_first_madame_web",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1747197528321,
+      "tag": "0009_crazy_angel",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1747197929351,
+      "tag": "0010_concerned_chameleon",
+      "breakpoints": true
     }
   ]
 }

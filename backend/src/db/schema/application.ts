@@ -1,4 +1,11 @@
-import { pgTable, uuid, pgEnum, text, timestamp } from "drizzle-orm/pg-core";
+import {
+    pgTable,
+    uuid,
+    pgEnum,
+    text,
+    timestamp,
+    json,
+} from "drizzle-orm/pg-core";
 import { jobs } from "./job";
 import { jobSeekers } from "./jobSeeker";
 
