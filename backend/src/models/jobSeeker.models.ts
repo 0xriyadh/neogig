@@ -12,6 +12,9 @@ export const jobSeekerResponseSchema = z.object({
     preferredJobType: z.enum(preferredJobTypeEnum.enumValues).nullish(),
     availableSchedule: z.any().nullish(), // Keep as any for now, refine if specific structure emerges
     currentlyLookingForJob: z.boolean().nullish(),
+    openToUrgentJobs: z.boolean().nullish(),
+    lastMinuteAvailability: z.boolean().nullish(),
+    skills: z.string().nullish(),
     createdAt: z.date(),
     updatedAt: z.date(),
 });
@@ -25,6 +28,9 @@ export const createJobSeekerInputSchema = z.object({
     mobile: z.string().optional(),
     description: z.string().optional(),
     preferredJobType: z.enum(preferredJobTypeEnum.enumValues).optional(),
+    openToUrgentJobs: z.boolean().optional(),
+    lastMinuteAvailability: z.boolean().optional(),
+    skills: z.string().optional(),
     availableSchedule: z.any().optional(),
     currentlyLookingForJob: z.boolean().optional(),
 });
@@ -41,6 +47,9 @@ export const updateJobSeekerInputSchema = z
         preferredJobType: z.enum(preferredJobTypeEnum.enumValues).optional(),
         availableSchedule: z.any().optional(),
         currentlyLookingForJob: z.boolean().optional(),
+        openToUrgentJobs: z.boolean().optional(),
+        lastMinuteAvailability: z.boolean().optional(),
+        skills: z.string().optional(),
     })
     // Specify fields to make optional, keeping userId required
     .partial({
@@ -52,6 +61,9 @@ export const updateJobSeekerInputSchema = z
         preferredJobType: true,
         availableSchedule: true,
         currentlyLookingForJob: true,
+        openToUrgentJobs: true,
+        lastMinuteAvailability: true,
+        skills: true,
     })
     .refine(
         (data) =>
