@@ -16,9 +16,11 @@ export function JobActions({ jobId }: JobActionsProps) {
     const router = useRouter();
 
     const { data: savedJob } = trpc.savedJob.getByJobId.useQuery({ jobId });
-    const { data: application } = trpc.application.getByJobId.useQuery({
-        jobId,
-    });
+    const { data: applications, isLoading: isApplicationsLoading } =
+        trpc.application.getByJobIdAndUserId.useQuery(
+            { jobId: jobId },
+            { enabled: !!jobId }
+        );
     const utils = trpc.useUtils();
 
     const saveJob = trpc.savedJob.toggle.useMutation({
@@ -63,12 +65,12 @@ export function JobActions({ jobId }: JobActionsProps) {
     }
 
     async function handleWithdrawInterest() {
-        if (!application) return;
+        if (!applications) return;
 
         setIsLoading(true);
         try {
             await withdrawInterest.mutateAsync({
-                applicationId: application[0].id,
+                applicationId: applications[0].id,
             });
             utils.application.getByJobId.invalidate();
         } finally {
@@ -91,7 +93,7 @@ export function JobActions({ jobId }: JobActionsProps) {
                 {savedJob && savedJob?.length > 0 ? "Unsave Job" : "Save Job"}
             </Button>
 
-            {application && application?.length > 0 && (
+            {applications && applications?.length > 0 && (
                 <Button
                     size="lg"
                     variant="destructive"

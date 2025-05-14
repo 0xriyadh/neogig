@@ -324,17 +324,6 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
                                     >
                                         Respond
                                     </Button>
-                                    <Button
-                                        variant="outline"
-                                        onClick={() =>
-                                            handleScheduleCompatibility(
-                                                application.id,
-                                                0
-                                            )
-                                        }
-                                    >
-                                        Update Schedule Compatibility
-                                    </Button>
                                 </div>
                             )}
                         </div>
