@@ -41,6 +41,7 @@ export const createJobInputSchema = z
             required_error: "Job contract type is required",
             invalid_type_error: "Invalid job contract type",
         }),
+        probableSchedule: z.object({}).optional(),
         experienceLevel: z.enum(experienceLevelEnum.enumValues).optional(),
         minimumWeeklyHourCommitment: z.number().int().positive().optional(),
         requiredSkills: z.array(z.string()).optional(),
@@ -69,7 +70,12 @@ export const updateJobInputSchema = z
         salaryMin: z.number().int().positive().optional(),
         salaryMax: z.number().int().positive().optional(),
         jobType: z.enum(jobTypeEnum.enumValues).optional(),
+        jobContractType: z.enum(jobContractTypeEnum.enumValues).optional(),
+        probableSchedule: z.object({}).optional(),
         experienceLevel: z.enum(experienceLevelEnum.enumValues).optional(),
+        minimumWeeklyHourCommitment: z.number().int().positive().optional(),
+        requiredSkills: z.array(z.string()).optional(),
+        isUrgent: z.boolean().optional(),
         isActive: z.boolean().optional(),
     })
     .partial({

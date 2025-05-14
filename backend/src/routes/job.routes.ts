@@ -85,6 +85,7 @@ export const jobRouter = router({
             // TODO: Add check: Fetch job, verify existingJob.companyId === ctx.user.id
             try {
                 const { id, ...updateData } = input;
+                console.log("updateData", updateData);
                 const updatedJob = await jobService.updateJob(id, updateData);
                 if (!updatedJob) {
                     throw new TRPCError({

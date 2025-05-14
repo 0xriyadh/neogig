@@ -145,24 +145,37 @@ export default function CompanyDashboard() {
                                                     applicants
                                                 </p> */}
                                             </div>
-                                            <div className="text-right">
-                                                <span
-                                                    className={`inline-block px-2 py-1 text-xs rounded-full ${
-                                                        job.isActive
-                                                            ? "bg-green-100 text-green-800"
-                                                            : "bg-gray-100 text-gray-800"
-                                                    }`}
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        router.push(
+                                                            `/jobs/${job.id}/edit`
+                                                        )
+                                                    }
                                                 >
-                                                    {job.isActive
-                                                        ? "Active"
-                                                        : "Draft"}
-                                                </span>
-                                                <p className="text-xs text-muted-foreground mt-1">
-                                                    Posted:{" "}
-                                                    {new Date(
-                                                        job.createdAt
-                                                    ).toLocaleDateString()}
-                                                </p>
+                                                    <Eye className="h-4 w-4" />
+                                                </Button>
+                                                <div className="text-right">
+                                                    <span
+                                                        className={`inline-block px-2 py-1 text-xs rounded-full ${
+                                                            job.isActive
+                                                                ? "bg-green-100 text-green-800"
+                                                                : "bg-gray-100 text-gray-800"
+                                                        }`}
+                                                    >
+                                                        {job.isActive
+                                                            ? "Active"
+                                                            : "Draft"}
+                                                    </span>
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        Posted:{" "}
+                                                        {new Date(
+                                                            job.createdAt
+                                                        ).toLocaleDateString()}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
