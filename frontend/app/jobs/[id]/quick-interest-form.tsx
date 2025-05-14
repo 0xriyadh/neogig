@@ -96,7 +96,7 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
     });
 
     const { data: applications, isLoading: isApplicationsLoading } =
-        trpc.application.getByJobId.useQuery(
+        trpc.application.getByJobIdAndUserId.useQuery(
             { jobId: jobId },
             { enabled: !!jobId }
         );

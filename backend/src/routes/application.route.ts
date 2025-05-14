@@ -26,6 +26,7 @@ export const applicationRouter = router({
                         description: jobSeekers.description,
                         preferredJobType: jobSeekers.preferredJobType,
                         availableSchedule: jobSeekers.availableSchedule,
+                        skills: jobSeekers.skills,
                     },
                 })
                 .from(applications)
@@ -36,6 +37,23 @@ export const applicationRouter = router({
                 .where(
                     and(
                         eq(applications.jobId, input.jobId),
+                        not(eq(applications.status, "WITHDRAWN"))
+                    )
+                );
+            return application;
+        }),
+
+    // getjob by jobId and userId, userId is in the ctx
+    getByJobIdAndUserId: protectedProcedure
+        .input(z.object({ jobId: z.string() }))
+        .query(async ({ ctx, input }) => {
+            const application = await db
+                .select()
+                .from(applications)
+                .where(
+                    and(
+                        eq(applications.jobId, input.jobId),
+                        eq(applications.jobSeekerId, ctx.user.id),
                         not(eq(applications.status, "WITHDRAWN"))
                     )
                 );

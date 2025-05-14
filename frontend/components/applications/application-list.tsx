@@ -225,20 +225,9 @@ export function ApplicationList({ jobId }: ApplicationListProps) {
                             <div>
                                 <h4 className="font-medium mb-2">Skills</h4>
                                 <div className="flex flex-wrap gap-2">
-                                    {application.jobSeeker?.description && (
-                                        <Badge variant="secondary">
-                                            {application.jobSeeker.description}
-                                        </Badge>
-                                    )}
-                                    {application.jobSeeker
-                                        ?.preferredJobType && (
-                                        <Badge variant="secondary">
-                                            {
-                                                application.jobSeeker
-                                                    .preferredJobType
-                                            }
-                                        </Badge>
-                                    )}
+                                    {application.jobSeeker?.skills?.split(",").map((skill) => (
+                                        <Badge key={skill}>{skill}</Badge>
+                                    ))}
                                 </div>
                             </div>
 

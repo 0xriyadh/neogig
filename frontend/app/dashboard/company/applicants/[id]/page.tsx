@@ -179,14 +179,6 @@ export default function ApplicantProfile() {
                                             <Badge variant="outline">Available Last Minute</Badge>
                                         )}
                                     </div>
-                                    {profile.availableSchedule && (
-                                        <div className="mt-4">
-                                            <h4 className="font-medium mb-2">Schedule</h4>
-                                            <pre className="text-sm text-muted-foreground whitespace-pre-wrap">
-                                                {JSON.stringify(profile.availableSchedule, null, 2)}
-                                            </pre>
-                                        </div>
-                                    )}
                                 </CardContent>
                             </Card>
                         </TabsContent>
