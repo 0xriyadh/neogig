@@ -87,8 +87,7 @@ export const applicationRouter = router({
         .input(
             z.object({
                 jobId: z.string(),
-                availability: z.string(),
-                skills: z.string(),
+                coverLetter: z.string().optional(),
             })
         )
         .mutation(async ({ ctx, input }) => {
@@ -111,13 +110,15 @@ export const applicationRouter = router({
                 });
             }
 
+            const coverLetterContent = input.coverLetter;
+
             const [application] = await db
                 .insert(applications)
                 .values({
                     jobId: input.jobId,
                     jobSeekerId: ctx.user.id,
                     status: "PENDING",
-                    coverLetter: `Availability: ${input.availability}\nSkills: ${input.skills}`,
+                    coverLetter: coverLetterContent,
                 })
                 .returning();
 

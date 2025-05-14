@@ -61,6 +61,7 @@ const commonSkills = [
 
 export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [coverLetter, setCoverLetter] = useState("");
     const [availableDays, setAvailableDays] = useState<AvailableSchedule>({
         saturday: { start: "09:00", end: "17:00" },
         sunday: { start: "09:00", end: "17:00" },
@@ -118,8 +119,7 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
         try {
             await submitInterest.mutateAsync({
                 jobId,
-                availability: JSON.stringify(filteredSchedule),
-                skills: selectedSkills.join(", "),
+                coverLetter,
             });
             utils.application.getByJobId.invalidate();
             utils.user.getMe.invalidate();
@@ -173,6 +173,35 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
             <CardContent>
                 <form onSubmit={onSubmit} className="space-y-6">
                     <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="coverLetter">
+                                Write about yourself in 500 words and why you
+                                want to join this company
+                            </Label>
+                            <Textarea
+                                id="coverLetter"
+                                value={coverLetter}
+                                onChange={(e) => setCoverLetter(e.target.value)}
+                                className="min-h-[200px]"
+                                placeholder="Share your background, experiences, and why you're interested in this position..."
+                                disabled={
+                                    isSubmitting ||
+                                    isApplicationsLoading ||
+                                    (applications && applications?.length > 0)
+                                }
+                            />
+                            <div className="flex justify-end">
+                                <span
+                                    className={`text-xs ${
+                                        coverLetter.length > 2500
+                                            ? "text-red-500"
+                                            : "text-gray-500"
+                                    }`}
+                                >
+                                    {coverLetter.length}/2500 characters
+                                </span>
+                            </div>
+                        </div>
                         <Label>Your Availability</Label>
                         <div className="space-y-4">
                             {Object.entries(availableDays).map(
@@ -271,103 +300,13 @@ export function QuickInterestForm({ jobId }: QuickInterestFormProps) {
                             )}
                         </div>
                     </div>
-                    <div className="space-y-2">
-                        <Label>Your Skills</Label>
-                        <Popover open={openSkills} onOpenChange={setOpenSkills}>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    role="combobox"
-                                    aria-expanded={openSkills}
-                                    className="w-full justify-between"
-                                    disabled={
-                                        isSubmitting ||
-                                        isApplicationsLoading ||
-                                        (applications &&
-                                            applications?.length > 0)
-                                    }
-                                >
-                                    {selectedSkills.length > 0
-                                        ? `${selectedSkills.length} skills selected`
-                                        : "Select skills..."}
-                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-full p-0">
-                                <Command>
-                                    <CommandInput placeholder="Search skills..." />
-                                    <CommandEmpty>
-                                        No skills found.
-                                    </CommandEmpty>
-                                    <CommandGroup>
-                                        {commonSkills.map((skill) => (
-                                            <CommandItem
-                                                key={skill}
-                                                onSelect={() => {
-                                                    setSelectedSkills(
-                                                        (prev) => {
-                                                            if (
-                                                                prev.includes(
-                                                                    skill
-                                                                )
-                                                            ) {
-                                                                return prev.filter(
-                                                                    (s) =>
-                                                                        s !==
-                                                                        skill
-                                                                );
-                                                            }
-                                                            return [
-                                                                ...prev,
-                                                                skill,
-                                                            ];
-                                                        }
-                                                    );
-                                                }}
-                                            >
-                                                <Check
-                                                    className={cn(
-                                                        "mr-2 h-4 w-4",
-                                                        selectedSkills.includes(
-                                                            skill
-                                                        )
-                                                            ? "opacity-100"
-                                                            : "opacity-0"
-                                                    )}
-                                                />
-                                                {skill}
-                                            </CommandItem>
-                                        ))}
-                                    </CommandGroup>
-                                </Command>
-                            </PopoverContent>
-                        </Popover>
-                        {selectedSkills.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mt-2">
-                                {selectedSkills.map((skill) => (
-                                    <Badge
-                                        key={skill}
-                                        variant="secondary"
-                                        className="cursor-pointer"
-                                        onClick={() => {
-                                            setSelectedSkills((prev) =>
-                                                prev.filter((s) => s !== skill)
-                                            );
-                                        }}
-                                    >
-                                        {skill} ×
-                                    </Badge>
-                                ))}
-                            </div>
-                        )}
-                    </div>
                     <Button
                         type="submit"
                         disabled={
                             isSubmitting ||
                             isApplicationsLoading ||
                             (applications && applications?.length > 0) ||
-                            selectedSkills.length === 0
+                            coverLetter.length > 2500
                         }
                     >
                         {isSubmitting ? "Submitting..." : "Submit Interest"}
