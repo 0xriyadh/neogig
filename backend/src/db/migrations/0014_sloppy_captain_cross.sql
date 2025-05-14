@@ -1,0 +1,1 @@
+ALTER TABLE "companies" ADD COLUMN "company_size" varchar(255);

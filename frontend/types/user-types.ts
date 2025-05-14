@@ -21,7 +21,13 @@ export interface JobSeekerProfile {
 
 export interface JobApplication {
     id: string;
-    status: "PENDING" | "REVIEWED" | "INTERVIEWING" | "OFFERED" | "REJECTED" | "WITHDRAWN";
+    status:
+        | "PENDING"
+        | "REVIEWED"
+        | "INTERVIEWING"
+        | "OFFERED"
+        | "REJECTED"
+        | "WITHDRAWN";
     appliedAt: string;
     job: {
         id: string;
@@ -47,11 +53,22 @@ export interface JobSeeker extends User {
     savedJobs: SavedJob[];
 }
 
-export interface Company extends User {
+export interface CompanyProfile {
+    userId: string;
     name: string;
-    location: string;
-    phone: string;
-    industry: string;
-    description: string;
-    registrationDate: string;
+    location?: string;
+    phone?: string;
+    contactEmail?: string;
+    website?: string;
+    companySize?: string;
+    industry?: string;
+    description?: string;
+    registrationDate?: string;
+    activelyHiring: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface Company extends User {
+    profile: CompanyProfile;
 }

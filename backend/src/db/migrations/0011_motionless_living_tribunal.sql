@@ -1,0 +1,1 @@
+ALTER TABLE "companies" ADD COLUMN "actively_hiring" boolean DEFAULT false;

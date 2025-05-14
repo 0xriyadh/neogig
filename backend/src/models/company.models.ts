@@ -7,9 +7,13 @@ export const companyResponseSchema = z.object({
     name: z.string(),
     location: z.string().nullish(),
     phone: z.string().nullish(),
+    contactEmail: z.string().nullish(),
+    website: z.string().nullish(),
+    companySize: z.string().nullish(),
     industry: z.enum(industryEnum.enumValues).nullish(),
     description: z.string().nullish(),
-    registrationDate: z.string().nullish(), // Date might be string | Date depending on DB driver
+    registrationDate: z.string().nullish(),
+    activelyHiring: z.boolean().nullish(),
     createdAt: z.date(),
     updatedAt: z.date(),
 });
@@ -20,9 +24,13 @@ export const createCompanyInputSchema = z.object({
     name: z.string().min(1, { message: "Company name is required" }),
     location: z.string().optional(),
     phone: z.string().optional(),
+    contactEmail: z.string().optional(),
+    website: z.string().optional(),
+    companySize: z.string().optional(),
     industry: z.enum(industryEnum.enumValues).optional(),
     description: z.string().optional(),
-    registrationDate: z.string().optional(), // Consider date validation if needed
+    registrationDate: z.string().optional(),
+    activelyHiring: z.boolean().optional(),
 });
 
 // Input schema for updating a company profile
@@ -35,18 +43,25 @@ export const updateCompanyInputSchema = z
             .optional(),
         location: z.string().optional(),
         phone: z.string().optional(),
+        contactEmail: z.string().optional(),
+        website: z.string().optional(),
+        companySize: z.string().optional(),
         industry: z.enum(industryEnum.enumValues).optional(),
         description: z.string().optional(),
         registrationDate: z.string().optional(),
+        activelyHiring: z.boolean().optional(),
     })
     .partial({
-        // Make all fields optional except userId
         name: true,
         location: true,
         phone: true,
+        contactEmail: true,
+        website: true,
+        companySize: true,
         industry: true,
         description: true,
         registrationDate: true,
+        activelyHiring: true,
     })
     .refine(
         (data) =>

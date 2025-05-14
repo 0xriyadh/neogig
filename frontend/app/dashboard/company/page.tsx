@@ -100,7 +100,7 @@ export default function CompanyDashboard() {
                     </CardContent>
                     <CardFooter>
                         <Button variant="outline" className="w-full" asChild>
-                            <Link href="/company/edit">Edit Profile</Link>
+                            <Link href="/profile/edit">Edit Profile</Link>
                         </Button>
                     </CardFooter>
                 </Card>

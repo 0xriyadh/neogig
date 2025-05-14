@@ -6,6 +6,7 @@ import {
     uuid,
     timestamp,
     date,
+    boolean,
 } from "drizzle-orm/pg-core";
 import { users } from "./user";
 
@@ -26,9 +27,13 @@ export const companies = pgTable("companies", {
     name: varchar("name", { length: 255 }).notNull(),
     location: text("location"),
     phone: varchar("phone", { length: 20 }),
+    contactEmail: varchar("contact_email", { length: 255 }),
+    website: varchar("website", { length: 255 }),
+    companySize: varchar("company_size", { length: 255 }),
     industry: industryEnum("industry"),
     description: text("description"),
     registrationDate: date("registration_date"),
+    activelyHiring: boolean("actively_hiring").default(false),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
