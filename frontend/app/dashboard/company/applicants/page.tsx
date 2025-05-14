@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import { trpc } from "@/lib/trpc";
 
@@ -37,27 +35,7 @@ interface Application {
     updatedAt: string;
 }
 
-interface Job {
-    id: string;
-    companyId: string;
-    title: string;
-    description: string;
-    location: string | null;
-    salaryMin: number | null;
-    salaryMax: number | null;
-    jobType: "REMOTE" | "ONSITE" | "HYBRID" | null;
-    jobContractType: "PART_TIME" | "CONTRACT";
-    experienceLevel: "ENTRY" | "MID" | "SENIOR" | null;
-    minimumWeeklyHourCommitment: number | null;
-    requiredSkills: string[];
-    isActive: boolean;
-    isUrgent: boolean;
-    createdAt: string;
-    updatedAt: string;
-}
-
 export default function AllApplicantsPage() {
-    const router = useRouter();
     const { data: user } = trpc.user.getMe.useQuery();
     const [statusFilter, setStatusFilter] = useState<string>("ALL");
     const [searchQuery, setSearchQuery] = useState<string>("");
